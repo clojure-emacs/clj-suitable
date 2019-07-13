@@ -1,0 +1,6 @@
+{:deps {org.clojure/clojurescript {:mvn/version "RELEASE"}}
+
+ :paths ["src" "resources" "target"]
+
+ :aliases {:fig {:extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}}}
+           :build {:main-opts ["-m" "figwheel.main" "-b" "fig"]}}}
