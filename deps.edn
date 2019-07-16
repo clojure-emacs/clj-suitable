@@ -1,6 +1,11 @@
-{:deps {org.clojure/clojurescript {:mvn/version "RELEASE"}}
+{:deps {org.clojure/clojurescript {:mvn/version "RELEASE"}
+        cider/piggieback {:mvn/version "RELEASE"}}
 
  :paths ["src" "resources" "target"]
 
  :aliases {:fig {:extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}}}
-           :build {:main-opts ["-m" "figwheel.main" "-b" "fig"]}}}
+           :build {:main-opts ["-m" "figwheel.main" "-b" "fig"]}
+           :nrepl-server {:main-opts ["-m" "cljs-object-completion.nrepl"]
+                          :extra-deps {nrepl {:mvn/version "RELEASE"}
+                                       cider/cider-nrepl {:mvn/version "RELEASE"}}}
+           :test {:extra-paths ["test"]}}}
