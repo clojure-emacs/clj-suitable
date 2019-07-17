@@ -22,11 +22,15 @@
 ;; 1. start nrepl server with piggieback
 (defonce clj-nrepl-server (atom nil))
 
+
+
+
 (defn start-clj-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
         middlewares (conj middlewares (resolve 'refactor-nrepl.middleware/wrap-refactor))
         handler (apply nrepl.server/default-handler middlewares)]
-   (reset! clj-nrepl-server (nrepl.server/start-server :handler handler :port 7888)))
+    (pprint middlewares)
+    (reset! clj-nrepl-server (nrepl.server/start-server :handler handler :port 7888)))
   (cl-format true "clj nrepl server started~%"))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -62,13 +66,25 @@
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-(defn -main []
+(defn restart-cljs-server []
+  (when @cljs-nrepl-server
+    (nrepl.server/stop-server @cljs-nrepl-server))
+  (require 'figwheel.main.api)
+  (try (figwheel.main.api/stop-all) (catch Exception e (prn e)))
+
+  (start-cljs-nrepl-server)
+  (start-cljs-nrepl-client))
+
+(defn -main [& args]
   (start-clj-nrepl-server)
 
   (start-cljs-nrepl-server)
   (start-cljs-nrepl-client)
   ;; (cljs-send-eval "(require 'figwheel.main) (figwheel.main/start :fig)")
   )
+
+;; (restart-cljs-server)
+
 
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -90,10 +106,6 @@
   (do (start-nrepl-server)
       (start-nrepl-client)
       (send-eval "(require 'figwheel.main) (figwheel.main/start :fig)"))
-
-  (do (nrepl.server/stop-server @server)
-      (require 'figwheel.main.api)
-      (figwheel.main.api/stop-all))
 
   (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "fig")
   123

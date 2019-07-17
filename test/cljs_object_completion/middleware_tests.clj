@@ -1,6 +1,6 @@
 (ns cljs-object-completion.middleware-tests
   (:require [cljs-object-completion.middleware :as sut]
-            [clojure.test :as t :refer [is deftest run-tests testing]]))
+            [clojure.test :as t :refer [deftest is run-tests testing]]))
 
 (comment
   (run-tests)
@@ -63,4 +63,4 @@
             ;; [(-> tests reverse (nth 1))]
             tests
             ]
-      (is (= expected (sut/client-instructions input state)) desc))))
+      (is (= expected (sut/expr-for-parent-obj input)) desc))))

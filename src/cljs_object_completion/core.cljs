@@ -21,10 +21,12 @@
         {:name key
          :hierarchy i
          :type (try
-                 (if-let [value (or (oget prop "value") (-> prop (oget "get") (apply [])))]
-                   (if (fn? value) 'function 'var)
-                   'var)
-                 (catch js/Error e 'var))}))))
+                 (if-let [value (or (oget prop "value")
+                                    (-> prop (oget "get")
+                                        (apply [])))]
+                   (if (fn? value) "function" "var")
+                   "var")
+                 (catch js/Error e "var"))}))))
 
 
 (comment
