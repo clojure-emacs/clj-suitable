@@ -48,31 +48,31 @@
 
 (defn expr-for-parent-obj
   [{:keys [ns context symbol]}]
-  (let [form (read-string context)
-        prefix (find-prefix form)
-        left-sibling (zip/left prefix)
-        first? (nil? left-sibling)
-        first-sibling (and (not first?) (some-> prefix zip/leftmost zip/node))
-        dot-fn? (starts-with? symbol ".")]
+  (when-let [form (with-in-str context (read *in* nil nil))]
+    (let [prefix (find-prefix form)
+          left-sibling (zip/left prefix)
+          first? (nil? left-sibling)
+          first-sibling (and (not first?) (some-> prefix zip/leftmost zip/node))
+          dot-fn? (starts-with? symbol ".")]
 
-    (cond
-      (and first? dot-fn?)
-      (some-> prefix zip/right zip/node str)
+      (cond
+        (and first? dot-fn?)
+        (some-> prefix zip/right zip/node str)
 
-      ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
-      ;; expr up to that point. If just the object that is accessed is left of
-      ;; prefix, we can take that verbatim.
-      ;; (.. js/console log) => js/console
-      ;; (.. js/console memory jsHeapSizeLimit) => (.. js/console memory)
-      (and first-sibling (= ".." (str first-sibling)) left-sibling)
-      (let [lefts (-> prefix zip/lefts)]
-        (if (<= (count lefts) 2)
-          (str (last lefts))
-          (str lefts)))
+        ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
+        ;; expr up to that point. If just the object that is accessed is left of
+        ;; prefix, we can take that verbatim.
+        ;; (.. js/console log) => js/console
+        ;; (.. js/console memory jsHeapSizeLimit) => (.. js/console memory)
+        (and first-sibling (= ".." (str first-sibling)) left-sibling)
+        (let [lefts (-> prefix zip/lefts)]
+          (if (<= (count lefts) 2)
+            (str (last lefts))
+            (str lefts)))
 
-      ;; (.. js/window -console (log "foo")) => (.. js/window -console)
-      (and first? (-> prefix zip/up zip/leftmost zip/node str (= "..")))
-      (-> prefix zip/up zip/lefts str))))
+        ;; (.. js/window -console (log "foo")) => (.. js/window -console)
+        (and first? (-> prefix zip/up zip/leftmost zip/node str (= "..")))
+        (-> prefix zip/up zip/lefts str)))))
 
 (defn handle-completion-msg
   [{:keys [id session transport op ns symbol context extra-metadata] :as msg} {prev-context :context :as prev-state}]
@@ -126,7 +126,6 @@
 
   ;; call next-handler in any case - we want the default completions as well
   (next-handler msg))
-
 
 (defn wrap-cljs-dynamic-completions [handler]
   (fn [msg] (cljs-dynamic-completion-handler handler msg)))
