@@ -1,5 +1,7 @@
 (ns runtime-completion.core
-  (:require [goog.object :refer [get] :rename {get oget}]))
+  (:require [goog.object :refer [get] :rename {get oget}]
+            [clojure.spec.alpha :as s]
+            [runtime-completion.spec :as spec]))
 
 (defn properties-by-prototype
   ""
@@ -12,6 +14,8 @@
       protos)))
 
 (defn property-names-and-types [js-obj]
+  {:pre [(s/valid? (complement nil?) js-obj)]
+   :post [(s/valid? (s/coll-of ::spec/obj-property) %)]}
   (let [seen (transient #{})]
     (for [[i {:keys [obj props]}] (map-indexed vector (properties-by-prototype js-obj))
           key (js-keys props)
@@ -36,9 +40,6 @@
 
   (let [obj (new (fn [x] (this-as this (goog.object/set this "foo" 23))))]
     (pprint (property-names-and-types obj)))
-
-  (require 'devtools.core)
-  (devtools.core/enable!)
 
   (oget js/console "log")
   (-> js/console property-names-and-types pprint)

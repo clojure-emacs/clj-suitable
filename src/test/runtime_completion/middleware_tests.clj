@@ -15,7 +15,7 @@
 
 
 
-(deftest completion-structions-for-client
+(deftest cljs-object-expression-extraction
   (let [state {:special-namespaces ["js"]}
         tests [;; should not trigger object completion
                {:desc "no object in sight"
@@ -64,3 +64,21 @@
             tests
             ]
       (is (= expected (sut/expr-for-parent-obj input)) desc))))
+
+
+(deftest handle-completion-msg-test
+  (with-redefs [sut/js-properties-of-object
+                (fn [obj-expr msg] {:error nil
+                                    :properties [{:name "log" :hierarchy 1 :type "function"}
+                                                 {:name "clear" :hierarchy 1 :type "function"}]})]
+    (is (= [{:type "function", :candidate ".log"}]
+             (sut/handle-completion-msg {:ns "cljs.user" :symbol ".l"} "(__prefix__ js/console)")))))
+
+(comment
+
+  (sut/expr-for-parent-obj {:ns nil :symbol "foo" :context "(__prefix__ foo)"})
+  (sut/expr-for-parent-obj {:ns "cljs.user" :symbol ".l" :context "(__prefix__ js/console)"})
+
+  (with-redefs [sut/js-properties-of-object (fn [obj-expr msg] [])]
+    (sut/handle-completion-msg {:ns "cljs.user" :symbol ".l" :context "(__prefix__ js/console)"} nil))
+  )
