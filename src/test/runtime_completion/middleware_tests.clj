@@ -1,6 +1,6 @@
-(ns cljs-object-completion.middleware-tests
-  (:require [cljs-object-completion.middleware :as sut]
-            [clojure.test :as t :refer [deftest is run-tests testing]]))
+(ns runtime-completion.middleware-tests
+  (:require [clojure.test :as t :refer [deftest is run-tests testing]]
+            [runtime-completion.middleware :as sut]))
 
 (comment
   (run-tests)

@@ -1,4 +1,4 @@
-(ns cljs-object-completion.repl
+(ns runtime-completion.repl
   (:require [figwheel.main]
             [figwheel.main.api]
             [nrepl server core]
@@ -6,7 +6,9 @@
             [clojure.pprint :refer [cl-format pprint]]
             [clojure.stacktrace :refer [print-stack-trace print-trace-element]]
             [clojure.zip :as zip]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [cider.piggieback]
+            [runtime-completion.middleware])
   (:import (java.lang Thread)))
 
 
@@ -41,8 +43,8 @@
 (comment
   (cljs-eval (-> @state :session) (-> @state :ns) "(+ 1 2)")
   (cljs-eval (-> @state :session) (-> @state :ns) "(+ 222 333) (+ 1 2)")
-  (cljs-eval (-> @state :session) (-> @state :ns) "(ns-interns 'cljs-object-completion.core)")
-  (cljs-eval (-> @state :session) (-> @state :ns) "(cljs-object-completion.core/properties-by-prototype js/console)")
+  (cljs-eval (-> @state :session) (-> @state :ns) "(ns-interns 'runtime-completion.core)")
+  (cljs-eval (-> @state :session) (-> @state :ns) "(runtime-completion.core/properties-by-prototype js/console)")
   )
 
 (defn cljs-dynamic-completion-handler
@@ -94,7 +96,7 @@
 (defn start-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
         middlewares (conj middlewares #'cider.piggieback/wrap-cljs-repl)
-        middlewares (conj middlewares #'wrap-cljs-dynamic-completions)
+        middlewares (conj middlewares #'runtime-completion.middleware/wrap-cljs-dynamic-completions)
         ;; handler (nrepl.server/default-handler #'cider.piggieback/wrap-cljs-repl)
         handler (apply nrepl.server/default-handler middlewares)]
    (reset! server (nrepl.server/start-server :handler handler :port 7889)))
@@ -145,7 +147,7 @@
   (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "fig")
   (class Transport)
   123
-  (send-eval "(require 'cljs-object-completion.core)")
+  (send-eval "(require 'runtime-completion.core)")
   (send-eval "123")
 
   (send-eval "(require 'figwheel.main.api) (figwheel.main.api/cljs-repl \"fig\")")
@@ -154,7 +156,7 @@
   (@send-msg {:op :close})
 
   (@send-msg {:op :complete :symbol "js/co" :ns "cljs.user" :context nil})
-  (@send-msg {:op :complete :symbol "cljs." :ns "cljs-object-completion.core" :context nil})
+  (@send-msg {:op :complete :symbol "cljs." :ns "runtime-completion.core" :context nil})
 
   (require '[cider.nrepl.inlined-deps.cljs-tooling.v0v3v1.cljs-tooling.complete :as cljs-complete])
   (require '[cider.nrepl.middleware.util.cljs :as cljs])

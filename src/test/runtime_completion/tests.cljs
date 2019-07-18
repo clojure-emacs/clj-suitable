@@ -1,7 +1,7 @@
-(ns cljs-object-completion.tests
-  (:require [cljs-object-completion.core :as compl]
-            [cljs.test :refer-macros [deftest is run-tests testing]]
-            [goog.object :refer [get set] :rename {get oget, set oset}]))
+(ns runtime-completion.tests
+  (:require [cljs.test :refer-macros [deftest is run-tests testing]]
+            [goog.object :refer [get set] :rename {get oget, set oset}]
+            [runtime-completion.core :as compl]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; helpers
@@ -25,17 +25,14 @@
 
 (deftest find-props-in-obj
   (is (= (find-prop-named obj-1 "foo") {:name "foo", :hierarchy 0, :type "var"}))
-  (is (= (find-prop-named obj-1 "bar") {:name "bar", :hierarchy 0, :type "function"}))
-  (.lo js/console))
+  (is (= (find-prop-named obj-1 "bar") {:name "bar", :hierarchy 0, :type "function"})))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 (comment
 
-
-123
   ;; (.. js/console (lo "foo"))
-  ;; complete: {:ns cljs-object-completion.tests, :symbol l, :context (.. js/console (__prefix__ "foo"))}
+  ;; complete: {:ns runtime-completion.tests, :symbol l, :context (.. js/console (__prefix__ "foo"))}
   (cljs.hello)
   ;; done
   (.log js/console "foo")

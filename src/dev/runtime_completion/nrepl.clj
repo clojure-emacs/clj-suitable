@@ -1,15 +1,13 @@
-(ns cljs-object-completion.nrepl
+(ns runtime-completion.nrepl
   (:require cider.nrepl
             cider.piggieback
-            [cljs-object-completion.middleware
-             :refer
-             [wrap-cljs-dynamic-completions]]
             [clojure.pprint :refer [cl-format pprint]]
             figwheel.main
             figwheel.main.api
             nrepl.core
             nrepl.server
-            refactor-nrepl.middleware))
+            refactor-nrepl.middleware
+            [runtime-completion.middleware :refer [wrap-cljs-dynamic-completions]]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -109,7 +107,7 @@
 
   (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "fig")
   123
-  (send-eval "(require 'cljs-object-completion.core)")
+  (send-eval "(require 'runtime-completion.core)")
   (send-eval "123")
 
   (send-eval "(require 'figwheel.main.api) (figwheel.main.api/cljs-repl \"fig\")")
@@ -118,7 +116,7 @@
   (@send-msg {:op :close})
 
   (@send-msg {:op :complete :symbol "js/co" :ns "cljs.user" :context nil})
-  (@send-msg {:op :complete :symbol "cljs." :ns "cljs-object-completion.core" :context nil})
+  (@send-msg {:op :complete :symbol "cljs." :ns "runtime-completion.core" :context nil})
 
   (require '[cider.nrepl.inlined-deps.cljs-tooling.v0v3v1.cljs-tooling.complete :as cljs-complete])
   (require '[cider.nrepl.middleware.util.cljs :as cljs])

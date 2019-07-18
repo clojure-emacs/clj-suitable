@@ -1,4 +1,4 @@
-(ns cljs-object-completion.core
+(ns runtime-completion.core
   (:require [goog.object :refer [get] :rename {get oget}]))
 
 (defn properties-by-prototype

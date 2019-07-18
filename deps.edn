@@ -1,11 +1,24 @@
-{:deps {org.clojure/clojurescript {:mvn/version "RELEASE"}
-        cider/piggieback {:mvn/version "RELEASE"}}
+{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}
+        nrepl {:mvn/version "0.6.0"}}
 
- :paths ["src" "resources" "target"]
+ :paths ["src/main"]
 
- :aliases {:fig {:extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}}}
-           :build {:main-opts ["-m" "figwheel.main" "-b" "fig"]}
-           :nrepl-server {:main-opts ["-m" "cljs-object-completion.nrepl"]
-                          :extra-deps {nrepl {:mvn/version "RELEASE"}
-                                       cider/cider-nrepl {:mvn/version "RELEASE"}}}
-           :test {:extra-paths ["test"]}}}
+ :aliases {;; for starting nrepl clj & cljs servers for live development
+           :dev {:extra-paths ["src/dev" "resources" "target"]
+                 :extra-deps {cider/piggieback {:mvn/version "RELEASE"}
+                              com.bhauman/figwheel-main {:mvn/version "RELEASE"}
+                              cider/cider-nrepl {:mvn/version "RELEASE"}}
+                 :main-opts ["-m" "runtime-completion.nrepl"]}
+
+           ;; build the cljs dev stuff, optional
+           :build-cljs {:extra-paths ["src/dev" "resources" "target"]
+                        :main-opts ["-m" "figwheel.main" "-b" "fig"]}
+
+           ;; tests
+           :test {:extra-paths ["src/test"]}
+
+           ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
+           :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                                :sha "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
+                  :main-opts ["-m"]}}}
+

@@ -1,12 +1,12 @@
-(ns cljs-object-completion.middleware
-  (:require [cljs-object-completion.ast :refer [tree-zipper]]
-            [clojure.edn :as edn]
+(ns runtime-completion.middleware
+  (:require [clojure.edn :as edn]
             [clojure.pprint :refer [cl-format]]
             [clojure.set :refer [rename-keys]]
             [clojure.string :refer [starts-with?]]
             [clojure.zip :as zip]
             [nrepl.middleware :refer [set-descriptor!]]
-            [nrepl.transport :as transport])
+            [nrepl.transport :as transport]
+            [runtime-completion.ast :refer [tree-zipper]])
   (:import nrepl.transport.Transport))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

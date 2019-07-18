@@ -1,4 +1,4 @@
-(ns cljs-object-completion.ast
+(ns runtime-completion.ast
   (:require [clojure.pprint :refer :all]
             [clojure.zip :as z])
   (:import [clojure.lang IPersistentList IPersistentMap IPersistentVector ISeq]))
