@@ -27,8 +27,8 @@
     (persistent! result)))
 
 (def ^:private obj-expr-eval-template "(do
-  (require 'cljs-object-completion.core)
-  (cljs-object-completion.core/property-names-and-types ~A))")
+  (require 'runtime-completion.core)
+  (runtime-completion.core/property-names-and-types ~A))")
 
 (defn- js-properties-of-object [obj-expr {:keys [session ns]}]
   (let [result (cljs-eval session ns (cl-format nil obj-expr-eval-template obj-expr))
@@ -77,22 +77,15 @@
 (defn handle-completion-msg
   [{:keys [id session transport op ns symbol context extra-metadata] :as msg} {prev-context :context :as prev-state}]
 
-  (cl-format true "~A: ~A~%" op (select-keys msg [:ns :symbol :context :extra-metadata]))
-
-
   (let [same-context? (= context ":same")
         context (if same-context? prev-context context)]
     (assert context "no context from message or prev-state!")
-
     (when-let [obj-expr (expr-for-parent-obj {:ns ns :symbol symbol :context context})]
       (let [{:keys [properties error]} (js-properties-of-object obj-expr msg)
             completions (if properties
-                          (do
-                            (->> properties
-                                 (cl-format true "~A has the following properties:~%~{  ~S~^~%~}~%" obj-expr))
-                            (map #(-> % (rename-keys {:name :candidate}) (dissoc :hierarchy)) properties))
+                          (for [{:keys [name type]} properties]
+                            {:type type :candidate (str (if (= "var" type) ".-" ".") name)})
                           [])]
-
         {:state (if same-context?
                   prev-state
                   (assoc prev-state :context context))
@@ -105,16 +98,16 @@
 (defn- empty-state [] {:context ""})
 
 (defn- cljs-dynamic-completion-handler
-  [next-handler {:keys [id session transport op] :as msg}]
+  [next-handler {:keys [id session transport op symbol] :as msg}]
 
   (when (and (= op "complete")
            ;; cljs repl?
-           (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
-                                               cider.piggieback/*cljs-compiler-env*)))
+             (not= "" symbol)
+             (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
+                                                 cider.piggieback/*cljs-compiler-env*)))
 
     (let [prev-state (or (get @session #'*object-completion-state*) (empty-state))
           {:keys [state completions]} (handle-completion-msg msg prev-state)
-          completions [{:candidate "cljs.hello", :type "var"}]
           answer (merge (when id {:id id})
                         (when session {:session (if (instance? clojure.lang.AReference session)
                                                   (-> session meta :id)

@@ -11,7 +11,7 @@
                  :main-opts ["-m" "runtime-completion.nrepl"]}
 
            ;; build the cljs dev stuff, optional
-           :build-cljs {:extra-paths ["src/dev" "resources" "target"]
+           :build-cljs {:extra-paths ["resources" "target"]
                         :main-opts ["-m" "figwheel.main" "-b" "fig"]}
 
            ;; tests
