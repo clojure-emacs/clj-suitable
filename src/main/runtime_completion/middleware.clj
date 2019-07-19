@@ -111,7 +111,7 @@
             :let [maybe-dash (if (= "var" type) "-" "")
                   candidate (str maybe-dot maybe-dash name)]
             :when (starts-with? candidate symbol)]
-        {:type type :candidate candidate}))))
+        {:type type :candidate candidate :ns obj-expr}))))
 
 (defn completion-answer
   "Creates an answer message with computed completions. Note that no done state is
