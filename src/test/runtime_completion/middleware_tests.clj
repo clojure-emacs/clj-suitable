@@ -93,9 +93,11 @@
 
 (deftest handle-completion-msg-test
   (with-redefs [sut/js-properties-of-object
-                (fn [obj-expr msg] {:error nil
-                                    :properties [{:name "log" :hierarchy 1 :type "function"}
-                                                 {:name "clear" :hierarchy 1 :type "function"}]})]
+                (fn [obj-expr msg prefix]
+                  (is (= "log" prefix))
+                  {:error nil
+                   :properties [{:name "log" :hierarchy 1 :type "function"}
+                                {:name "clear" :hierarchy 1 :type "function"}]})]
     (is (= [{:type "function", :candidate ".log" :ns "js/console"}]
            (sut/handle-completion-msg {:ns "cljs.user" :symbol ".l"} "(__prefix__ js/console)")))
     (is (= [{:type "function", :candidate "log" :ns "js/console"}]

@@ -1,9 +1,8 @@
 (ns runtime-completion.middleware
   (:require [clojure.edn :as edn]
             [clojure.pprint :refer [cl-format]]
-            [clojure.set :refer [rename-keys]]
             [clojure.spec.alpha :as s]
-            [clojure.string :refer [starts-with?]]
+            [clojure.string :refer [starts-with? replace]]
             [clojure.zip :as zip]
             [nrepl.middleware :refer [set-descriptor!]]
             [nrepl.transport :as transport]
@@ -30,20 +29,23 @@
 
 (def ^:private obj-expr-eval-template "(do
   (require 'runtime-completion.core)
-  (runtime-completion.core/property-names-and-types ~A))")
+  (runtime-completion.core/property-names-and-types ~A ~S))")
 
 (defn- js-properties-of-object
-  [obj-expr {:keys [session ns]}]
-  {:pre [(s/valid? ::spec/non-empty-string obj-expr)]
-   :post [(s/valid? (s/keys :error (s/nilable string?)
-                            :properties (s/coll-of (s/keys {:name ::spec/non-empty-string
-                                                            :hierarchy int?
-                                                            :type ::spec/non-empty-string}))) %)]}
-  (let [result (cljs-eval session ns (cl-format nil obj-expr-eval-template obj-expr))
-        error-descr (some->> result (map :err) (remove nil?) not-empty (apply str))
-        props (some->> result last :value edn/read-string)]
-    {:error error-descr
-     :properties props}))
+  ([obj-expr session-ns-map]
+   (js-properties-of-object obj-expr session-ns-map nil))
+  ([obj-expr {:keys [session ns]} prefix]
+   {:pre [(s/valid? ::spec/non-empty-string obj-expr)
+          (s/valid? (s/nilable string?) prefix)]
+    :post [(s/valid? (s/keys :error (s/nilable string?)
+                             :properties (s/coll-of (s/keys {:name ::spec/non-empty-string
+                                                             :hierarchy int?
+                                                             :type ::spec/non-empty-string}))) %)]}
+   (let [result (cljs-eval session ns (cl-format nil obj-expr-eval-template obj-expr prefix))
+         error-descr (some->> result (map :err) (remove nil?) not-empty (apply str))
+         props (some->> result last :value edn/read-string)]
+     {:error error-descr
+      :properties props})))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -123,7 +125,7 @@
             (str (last lefts))
             (str lefts)))))))
 
-(def dot-prefix-re #"^\.(?:[^\.].*|$)")
+(def dot-dash-re #"^\.-?")
 
 (defn handle-completion-msg
   "Given some context (the toplevel form that has changed) and a symbol string
@@ -137,8 +139,10 @@
          (s/valid? ::spec/non-empty-string context)]
    :post [(s/valid? (s/nilable ::spec/completions) %)]}
   (if-let [obj-expr (expr-for-parent-obj {:ns ns :symbol symbol :context context})]
-    (let [{:keys [properties error]} (js-properties-of-object obj-expr msg)
-          maybe-dot (if (re-matches dot-prefix-re symbol) "." "")]
+    (let [dot-dash (re-find dot-dash-re symbol)
+          prefix (replace symbol dot-dash-re "")
+          {:keys [properties error]} (js-properties-of-object obj-expr msg prefix)
+          maybe-dot (if dot-dash "." "")]
       (for [{:keys [name type]} properties
             :let [maybe-dash (if (= "var" type) "-" "")
                   candidate (str maybe-dot maybe-dash name)]
