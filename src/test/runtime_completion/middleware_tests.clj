@@ -61,12 +61,33 @@
 
                {:desc ".. prop"
                 :input    {:ns 'foo, :symbol "-memory", :context "(.. js/console __prefix__)"}
-                :expected "js/console"}]]
+                :expected "js/console"}
 
-    (doseq [{:keys [input expected desc]}
-            ;; [(-> tests reverse (nth 1))]
-            tests
-            ]
+               {:desc "->"
+                :input    {:ns 'foo, :symbol ".log", :context "(-> js/console __prefix__)"}
+                :expected "(-> js/console)"}
+
+               {:desc "-> (.)"
+                :input    {:ns 'foo, :symbol ".log", :context "(-> js/console (__prefix__ \"foo\"))"}
+                :expected "(-> js/console)"}
+
+               {:desc "-> chained"
+                :input    {:ns 'foo, :symbol ".log", :context "(-> js/window .-console __prefix__)"}
+                :expected "(-> js/window .-console)"}
+
+               {:desc "-> (.)"
+                :input    {:ns 'foo, :symbol ".log", :context "(-> js/window .-console (__prefix__ \"foo\"))"}
+                :expected "(-> js/window .-console)"}
+
+               {:desc "doto"
+                :input    {:ns 'foo, :symbol ".log", :context "(doto (. js/window -console) __prefix__)"}
+                :expected "(. js/window -console)"}
+
+               {:desc "doto (.)"
+                :input    {:ns 'foo, :symbol ".log", :context "(doto (. js/window -console) (__prefix__ \"foo\"))"}
+                :expected "(. js/window -console)"}]]
+
+    (doseq [{:keys [input expected desc]} tests]
       (is (= expected (sut/expr-for-parent-obj input)) desc))))
 
 

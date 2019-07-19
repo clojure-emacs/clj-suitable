@@ -54,6 +54,16 @@
       (when-not (zip/end? node)
         (recur (zip/next node))))))
 
+(defn thread-form? [form]
+  (->> form
+       str
+       (re-find #"->")
+       nil?
+       not))
+
+(defn doto-form? [form]
+  (= form 'doto))
+
 (defn expr-for-parent-obj
   "Given the context and symbol of a completion request, will try to find an
   expression that evaluates to the object being accessed."
@@ -67,9 +77,31 @@
           left-sibling (zip/left prefix)
           first? (nil? left-sibling)
           first-sibling (and (not first?) (some-> prefix zip/leftmost zip/node))
+          first-sibling-in-parent (some-> prefix zip/up zip/leftmost zip/node)
+          threaded? (if first? (thread-form? first-sibling-in-parent) (thread-form? first-sibling) )
+          doto? (if first? (doto-form? first-sibling-in-parent) (doto-form? first-sibling))
           dot-fn? (starts-with? symbol ".")]
 
       (cond
+        ;; is it a threading macro?
+        threaded?
+        (if first?
+          ;; parent is the thread
+          (-> prefix zip/up zip/lefts str)
+          ;; thread on same level
+          (-> prefix zip/lefts str))
+
+        doto?
+        (if first?
+          ;; parent is the thread
+          (-> prefix zip/up zip/leftmost zip/right zip/node str)
+          ;; thread on same level
+          (-> prefix zip/leftmost zip/right zip/node str))
+
+        (and first? dot-fn?)
+        (some-> prefix zip/right zip/node str)
+
+        ;; simple (.foo bar)
         (and first? dot-fn?)
         (some-> prefix zip/right zip/node str)
 
