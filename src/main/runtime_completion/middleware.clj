@@ -8,7 +8,7 @@
             [nrepl.middleware :refer [set-descriptor!]]
             [nrepl.transport :as transport]
             [runtime-completion.ast :refer [tree-zipper]]
-            [runtime-completion.spec :as spec] )
+            [runtime-completion.spec :as spec])
   (:import nrepl.transport.Transport))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -58,7 +58,11 @@
   "Given the context and symbol of a completion request, will try to find an
   expression that evaluates to the object being accessed."
   [{:keys [ns context symbol]}]
-  (when-let [form (with-in-str context (read *in* nil nil))]
+  (when-let [form (try
+                    (with-in-str context (read *in* nil nil))
+                    (catch Exception e
+                      (cl-format *err* "error while gathering cljs runtime completions: ~S~%" e)
+                      nil))]
     (let [prefix (find-prefix form)
           left-sibling (zip/left prefix)
           first? (nil? left-sibling)
@@ -82,7 +86,12 @@
 
         ;; (.. js/window -console (log "foo")) => (.. js/window -console)
         (and first? (-> prefix zip/up zip/leftmost zip/node str (= "..")))
-        (-> prefix zip/up zip/lefts str)))))
+        (let [lefts (-> prefix zip/up zip/lefts)]
+          (if (<= (count lefts) 2)
+            (str (last lefts))
+            (str lefts)))))))
+
+(def dot-prefix-re #"^\.(?:[^\.].*|$)")
 
 (defn handle-completion-msg
   "Given some context (the toplevel form that has changed) and a symbol string
@@ -94,11 +103,13 @@
   [{:keys [id session transport op ns symbol extra-metadata] :as msg} context]
   {:pre [(s/valid? ::spec/non-empty-string symbol)
          (s/valid? ::spec/non-empty-string context)]
-   :post [(s/valid? ::spec/completions %)]}
+   :post [(s/valid? (s/nilable ::spec/completions) %)]}
   (if-let [obj-expr (expr-for-parent-obj {:ns ns :symbol symbol :context context})]
-    (let [{:keys [properties error]} (js-properties-of-object obj-expr msg)]
+    (let [{:keys [properties error]} (js-properties-of-object obj-expr msg)
+          maybe-dot (if (re-matches dot-prefix-re symbol) "." "")]
       (for [{:keys [name type]} properties
-            :let [candidate (str (if (= "var" type) ".-" ".") name)]
+            :let [maybe-dash (if (= "var" type) "-" "")
+                  candidate (str maybe-dot maybe-dash name)]
             :when (starts-with? candidate symbol)]
         {:type type :candidate candidate}))))
 

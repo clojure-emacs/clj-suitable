@@ -47,6 +47,10 @@
                 :input    {:ns 'foo, :symbol "log", :context "(.. js/console __prefix__)"}
                 :expected "js/console"}
 
+               {:desc ".. method nested"
+                :input    {:ns 'foo, :symbol "log", :context "(.. js/console (__prefix__ \"foo\"))"}
+                :expected "js/console"}
+
                {:desc ".. method chained"
                 :input    {:ns 'foo, :symbol "log", :context "(.. js/window -console __prefix__)"}
                 :expected "(.. js/window -console)"}
@@ -72,7 +76,9 @@
                                     :properties [{:name "log" :hierarchy 1 :type "function"}
                                                  {:name "clear" :hierarchy 1 :type "function"}]})]
     (is (= [{:type "function", :candidate ".log"}]
-             (sut/handle-completion-msg {:ns "cljs.user" :symbol ".l"} "(__prefix__ js/console)")))))
+           (sut/handle-completion-msg {:ns "cljs.user" :symbol ".l"} "(__prefix__ js/console)")))
+    (is (= [{:type "function", :candidate "log"}]
+           (sut/handle-completion-msg {:ns "cljs.user" :symbol "l"} "(.. js/console (__prefix__ \"foo\"))")))))
 
 (comment
 
