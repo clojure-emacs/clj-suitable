@@ -1,18 +1,11 @@
 (ns runtime-completion.middleware
   (:require [clojure.edn :as edn]
-            [clojure.pprint :refer [cl-format]]
-            [clojure.spec.alpha :as s]
-            [clojure.string :refer [starts-with? replace]]
-            [clojure.zip :as zip]
             [nrepl.middleware :refer [set-descriptor!]]
-            [nrepl.transport :as transport]
-            [runtime-completion.ast :refer [tree-zipper]]
-            [runtime-completion.spec :as spec])
+            [nrepl.transport :as transport])
   (:import nrepl.transport.Transport))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-;; (println (cljs-eval session "(properties-by-prototype js/console)" ns))
 (defn- cljs-eval
   "Abuses the nrepl handler `piggieback/do-eval` in that it injects a pseudo
   transport into it that simply captures it's output."
@@ -27,127 +20,7 @@
     (eval-fn {:session session :transport transport :code code :ns ns})
     (persistent! result)))
 
-(def ^:private obj-expr-eval-template "(do
-  (require 'runtime-completion.core)
-  (runtime-completion.core/property-names-and-types ~A ~S))")
-
-(defn- js-properties-of-object
-  ([obj-expr session-ns-map]
-   (js-properties-of-object obj-expr session-ns-map nil))
-  ([obj-expr {:keys [session ns]} prefix]
-   {:pre [(s/valid? ::spec/non-empty-string obj-expr)
-          (s/valid? (s/nilable string?) prefix)]
-    :post [(s/valid? (s/keys :error (s/nilable string?)
-                             :properties (s/coll-of (s/keys {:name ::spec/non-empty-string
-                                                             :hierarchy int?
-                                                             :type ::spec/non-empty-string}))) %)]}
-   (let [result (cljs-eval session ns (cl-format nil obj-expr-eval-template obj-expr prefix))
-         error-descr (some->> result (map :err) (remove nil?) not-empty (apply str))
-         props (some->> result last :value edn/read-string)]
-     {:error error-descr
-      :properties props})))
-
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-(defn find-prefix [form]
-  (loop [node (tree-zipper form)]
-    (if (= '__prefix__ (zip/node node))
-      node
-      (when-not (zip/end? node)
-        (recur (zip/next node))))))
-
-(defn thread-form? [form]
-  (->> form
-       str
-       (re-find #"->")
-       nil?
-       not))
-
-(defn doto-form? [form]
-  (= form 'doto))
-
-(defn expr-for-parent-obj
-  "Given the context and symbol of a completion request, will try to find an
-  expression that evaluates to the object being accessed."
-  [{:keys [ns context symbol]}]
-  (when-let [form (try
-                    (with-in-str context (read *in* nil nil))
-                    (catch Exception e
-                      (cl-format *err* "error while gathering cljs runtime completions: ~S~%" e)
-                      nil))]
-    (let [prefix (find-prefix form)
-          left-sibling (zip/left prefix)
-          first? (nil? left-sibling)
-          first-sibling (and (not first?) (some-> prefix zip/leftmost zip/node))
-          first-sibling-in-parent (some-> prefix zip/up zip/leftmost zip/node)
-          threaded? (if first? (thread-form? first-sibling-in-parent) (thread-form? first-sibling) )
-          doto? (if first? (doto-form? first-sibling-in-parent) (doto-form? first-sibling))
-          dot-fn? (starts-with? symbol ".")]
-
-      (cond
-        ;; is it a threading macro?
-        threaded?
-        (if first?
-          ;; parent is the thread
-          (-> prefix zip/up zip/lefts str)
-          ;; thread on same level
-          (-> prefix zip/lefts str))
-
-        doto?
-        (if first?
-          ;; parent is the thread
-          (-> prefix zip/up zip/leftmost zip/right zip/node str)
-          ;; thread on same level
-          (-> prefix zip/leftmost zip/right zip/node str))
-
-        (and first? dot-fn?)
-        (some-> prefix zip/right zip/node str)
-
-        ;; simple (.foo bar)
-        (and first? dot-fn?)
-        (some-> prefix zip/right zip/node str)
-
-        ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
-        ;; expr up to that point. If just the object that is accessed is left of
-        ;; prefix, we can take that verbatim.
-        ;; (.. js/console log) => js/console
-        ;; (.. js/console memory jsHeapSizeLimit) => (.. js/console memory)
-        (and first-sibling (= ".." (str first-sibling)) left-sibling)
-        (let [lefts (-> prefix zip/lefts)]
-          (if (<= (count lefts) 2)
-            (str (last lefts))
-            (str lefts)))
-
-        ;; (.. js/window -console (log "foo")) => (.. js/window -console)
-        (and first? (-> prefix zip/up zip/leftmost zip/node str (= "..")))
-        (let [lefts (-> prefix zip/up zip/lefts)]
-          (if (<= (count lefts) 2)
-            (str (last lefts))
-            (str lefts)))))))
-
-(def dot-dash-re #"^\.-?")
-
-(defn handle-completion-msg
-  "Given some context (the toplevel form that has changed) and a symbol string
-  that represents the last typed input, we try to find out if the context/symbol
-  are object access (property access or method call). If so, we try to extract a
-  form that we can evaluate to get the object that is accessed. If we get the
-  object, we enumerate it's properties and methods and generate a list of
-  matching completions for those."
-  [{:keys [id session transport op ns symbol extra-metadata] :as msg} context]
-  {:pre [(s/valid? ::spec/non-empty-string symbol)
-         (s/valid? ::spec/non-empty-string context)]
-   :post [(s/valid? (s/nilable ::spec/completions) %)]}
-  (if-let [obj-expr (expr-for-parent-obj {:ns ns :symbol symbol :context context})]
-    (let [dot-dash (re-find dot-dash-re symbol)
-          prefix (replace symbol dot-dash-re "")
-          {:keys [properties error]} (js-properties-of-object obj-expr msg prefix)
-          maybe-dot (if dot-dash "." "")]
-      (for [{:keys [name type]} properties
-            :let [maybe-dash (if (= "var" type) "-" "")
-                  candidate (str maybe-dot maybe-dash name)]
-            :when (starts-with? candidate symbol)]
-        {:type type :candidate candidate :ns obj-expr}))))
 
 (defn completion-answer
   "Creates an answer message with computed completions. Note that no done state is
@@ -167,28 +40,35 @@
 (defn handle-completion-msg-stateful
   "Tracks the completion state (contexts) and reuses old contexts if necessary.
   State is kept in session."
-  [{:keys [session context] :as msg}]
+  [{:keys [session context] :as msg} cljs-eval-fn]
   (let [prev-state (or (get @session #'*object-completion-state*) (empty-state))
         same-context? (= context ":same")
-        context (if same-context? (:context prev-state) context)]
-    (when-let [completions (handle-completion-msg msg context)]
-      (swap! session #(merge % {#'*object-completion-state*
-                                (if same-context?
-                                  prev-state
-                                  (assoc prev-state :context context))}))
+        context (if same-context? (:context prev-state) context)
+        context (if (= context "nil") "" context)]
+    (swap! session #(merge % {#'*object-completion-state*
+                              (if same-context?
+                                prev-state
+                                (assoc prev-state :context context))}))
+    (when-let [completions (handle-completion-msg cljs-eval-fn msg context)]
       (completion-answer msg completions))))
 
 (defn- cljs-dynamic-completion-handler
-  [next-handler {:keys [id session transport op symbol] :as msg}]
+  "Handles op = \"complete\". Will try to fetch object completions but also allows
+  the default completion handler to act."
+  [next-handler {:keys [id session ns transport op symbol] :as msg}]
 
   (when (and (= op "complete")
-           ;; cljs repl?
+             ;; cljs repl?
              (not= "" symbol)
              (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
                                                  cider.piggieback/*cljs-compiler-env*)))
 
-    (when-let [answer (handle-completion-msg-stateful msg)]
-      (transport/send transport answer)))
+    (let [cljs-eval-fn
+          (fn [ns code] (let [result (cljs-eval session ns code)]
+                          {:error (some->> result (map :err) (remove nil?) not-empty (apply str))
+                           :value (some->> result last :value edn/read-string)}))
+          answer (handle-completion-msg-stateful msg cljs-eval-fn)]
+      (when answer (transport/send transport answer))))
 
   ;; call next-handler in any case - we want the default completions as well
   (next-handler msg))

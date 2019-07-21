@@ -29,7 +29,35 @@
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+(defn fooo []
+  (.-document js/window)
+  (.. js/document -body)
+  (set! (.. js/document -body -style) "background-color: red;")
+  (set! (-> js/document .-body .-style) "background-color: green;")
+
+  (doto (. js/document -body))
+
+  (.. js/document -body (setAttribute "fo" "bar"))
+
+  (.. js/console -memory (js))
+  (prn "hello"))
+
+(js/cons)
+(this-as this (.. this -window -console))
+
 (comment
+  (.-window js/window)
+
+  (js/window.console.log "foo")
+  (. js/window getBody)
+  (js/window.getBody)
+  ()
+
+
+
+  (this-as this (compl/property-names-and-types this "con"))
+  (this-as this this)
+
 
   ;; (.. js/console (lo "foo"))
   ;; complete: {:ns runtime-completion.tests, :symbol l, :context (.. js/console (__prefix__ "foo"))}
@@ -55,5 +83,3 @@
 
   (foo )
   )
-
-
