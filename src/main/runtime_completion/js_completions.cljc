@@ -141,14 +141,34 @@
                        (replace symbol dot-dash-prefix-re ""))
              :vars-have-dashes? true))))
 
-(defn handle-completion-msg
+(defn cljs-completions
   "Given some context (the toplevel form that has changed) and a symbol string
   that represents the last typed input, we try to find out if the context/symbol
   are object access (property access or method call). If so, we try to extract a
   form that we can evaluate to get the object that is accessed. If we get the
   object, we enumerate it's properties and methods and generate a list of
-  matching completions for those."
-  [cljs-eval-fn {:keys [ns symbol extra-metadata]} context]
+  matching completions for those.
+
+  The arguments to this function are
+
+  1. `cljs-eval-fn`: a function that given a namespace (as string) and cljs
+  code (string) will evaluate it and return the value as a clojure object. See
+  `runtime-completion.middleware/cljs-dynamic-completion-handler` for how to
+  setup an eval function with nREPL.
+
+  The last two arguments mirror the interface of `compliment.core/completions`
+  from https://github.com/alexander-yakushev/compliment:
+
+  2. A symbol (as string) to complete, basically the prefix.
+
+  3. An options map that should have at least the keys :ns and :context. :ns is
+  the name (string) of the namespace the completion request is coming
+  from. :context is a s-expression (as string) of the toplevel form the symbol
+  comes from, the symbol being replaced by \"__prefix__\". See the compliment
+  library for details on this format.
+  Currently unsupported options that compliment implements
+  are :extra-metadata :sort-order and :plain-candidates."
+  [cljs-eval-fn symbol {:keys [ns context] :as options-map}]
   {:pre [(s/valid? ::spec/non-empty-string symbol)
          (s/valid? string? context)]
    :post [(s/valid? (s/nilable ::spec/completions) %)]}
@@ -163,3 +183,4 @@
             :when (starts-with? candidate symbol)]
         (do
           {:type type :candidate candidate :ns (if global? "js" obj-expr)})))))
+

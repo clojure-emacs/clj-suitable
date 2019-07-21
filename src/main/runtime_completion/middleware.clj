@@ -2,7 +2,7 @@
   (:require [clojure.edn :as edn]
             [nrepl.middleware :refer [set-descriptor!]]
             [nrepl.transport :as transport]
-            [runtime-completion.js-completions :refer [handle-completion-msg]])
+            [runtime-completion.js-completions :refer [cljs-completions]])
   (:import nrepl.transport.Transport))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -41,18 +41,19 @@
 (defn handle-completion-msg-stateful
   "Tracks the completion state (contexts) and reuses old contexts if necessary.
   State is kept in session."
-  [{:keys [session context] :as msg} cljs-eval-fn]
+  [{:keys [session symbol context ns extra-metadata] :as msg} cljs-eval-fn]
   (let [prev-state (or (get @session #'*object-completion-state*) (empty-state))
         same-context? (= context ":same")
         context (if same-context? (:context prev-state) context)
-        context (if (= context "nil") "" context)]
+        context (if (= context "nil") "" context)
+        options-map {:context context :ns ns :extra-metadata extra-metadata}]
     (swap! session #(merge % {#'*object-completion-state*
                               (if same-context?
                                 prev-state
                                 (assoc prev-state :context context))}))
-    (when-let [completions (handle-completion-msg cljs-eval-fn msg context)]
+    (when-let [completions (cljs-completions cljs-eval-fn symbol options-map)]
       (completion-answer msg completions))))
-
+runtime-completion.middleware/cljs-dynamic-completion-handler
 (defn- cljs-dynamic-completion-handler
   "Handles op = \"complete\". Will try to fetch object completions but also allows
   the default completion handler to act."
@@ -81,3 +82,22 @@
                  {:requires #{"clone"}
                   :expects #{"complete" "eval"}
                   :handles {}})
+
+;; (cider.nrepl.middleware.util.cljs/requires-piggieback
+;;    {:doc "Middleware providing completion support."
+;;     :requires #{#'session}
+;;     :handles {"complete"
+;;               {:doc "Return a list of symbols matching the specified (partial) symbol."
+;;                :requires {"ns" "The symbol's namespace"
+;;                           "symbol" "The symbol to lookup"
+;;                           "session" "The current session"}
+;;                :optional {"context" "Completion context for compliment."
+;;                           "extra-metadata" "List of extra-metadata fields. Possible values: arglists, doc."}
+;;                :returns {"completions" "A list of possible completions"}}
+;;               "complete-doc"
+;;               {:doc "Retrieve documentation suitable for display in completion popup"
+;;                :requires {"ns" "The symbol's namespace"
+;;                           "symbol" "The symbol to lookup"}
+;;                :returns {"completion-doc" "Symbol's documentation"}}
+;;               "complete-flush-caches"
+;;               {:doc "Forces the completion backend to repopulate all its caches"}}})

@@ -116,63 +116,63 @@
 
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-;; handle-completion-msg
+;; cljs-completions
 
 (deftest global
   (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this this)" "c" [{:name "console" :hierarchy 1 :type "var"}
                                                                    {:name "confirm" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "js/console" "js" "var")
             (candidate "js/confirm" "js" "function")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "js/c"} "")))))
+           (sut/cljs-completions cljs-eval-fn "js/c" {:ns "cljs.user" :context ""})))))
 
 (deftest global-prop
   (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -console))" "lo"
                                          [{:name "log" :hierarchy 1 :type "function"}
                                           {:name "clear" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "js/console.log" "js" "function")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "js/console.lo"} "js/console")))))
+           (sut/cljs-completions cljs-eval-fn "js/console.lo" {:ns "cljs.user" :context "js/console"})))))
 
 (deftest global-prop-2
-  (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -window-console))" "lo"
+  (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -window -console))" "lo"
                                          [{:name "log" :hierarchy 1 :type "function"}
                                           {:name "clear" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "js/window.console.log" "js" "function")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "js/window.console.lo"} "js/console")))))
+           (sut/cljs-completions cljs-eval-fn "js/window.console.lo" {:ns "cljs.user" :context "js/console"})))))
 
 (deftest simple
   (let [cljs-eval-fn (fake-cljs-eval-fn "js/console" "l" [{:name "log" :hierarchy 1 :type "function"}
                                                            {:name "clear" :hierarchy 1 :type "function"}])]
     (is (= [(candidate ".log" "js/console")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol ".l"} "(__prefix__ js/console)")))
+           (sut/cljs-completions cljs-eval-fn ".l" {:ns "cljs.user" :context "(__prefix__ js/console)"})))
     (is (= [(candidate "log" "js/console")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "l"} "(. js/console __prefix__)")))
+           (sut/cljs-completions cljs-eval-fn "l" {:ns "cljs.user" :context "(. js/console __prefix__)"})))
     (is (= [(candidate "log" "js/console")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "l"} "(.. js/console (__prefix__ \"foo\"))")))))
+           (sut/cljs-completions cljs-eval-fn "l" {:ns "cljs.user" :context "(.. js/console (__prefix__ \"foo\"))"})))))
 
 (deftest dotdot-completion
   (let [cljs-eval-fn (fake-cljs-eval-fn "js/foo" "ba" [{:name "bar" :hierarchy 1 :type "var"}
                                                         {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "js/foo")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "-ba"} "(.. js/foo __prefix__)")))
+           (sut/cljs-completions cljs-eval-fn "-ba" {:ns "cljs.user" :context "(.. js/foo __prefix__)"})))
     (is (= [(candidate "baz" "js/foo")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "ba"} "(.. js/foo __prefix__)")))))
+           (sut/cljs-completions cljs-eval-fn "ba" {:ns "cljs.user" :context "(.. js/foo __prefix__)"})))))
 
 (deftest dotdot-completion-chained+nested
   (let [cljs-eval-fn (fake-cljs-eval-fn "(.. js/foo zork)" "ba" [{:name "bar" :hierarchy 1 :type "var"}
                                                         {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "(.. js/foo zork)")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "-ba"} "(.. js/foo zork (__prefix__ \"foo\"))")))
+           (sut/cljs-completions cljs-eval-fn "-ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))
     (is (= [(candidate "baz" "(.. js/foo zork)")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "ba"} "(.. js/foo zork (__prefix__ \"foo\"))")))))
+           (sut/cljs-completions cljs-eval-fn "ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))))
 
 
 (deftest dotdot-completion-chained+nested
   (let [cljs-eval-fn (fake-cljs-eval-fn "(.. js/foo zork)" "ba" [{:name "bar" :hierarchy 1 :type "var"}
                                                         {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "(.. js/foo zork)")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "-ba"} "(.. js/foo zork (__prefix__ \"foo\"))")))
+           (sut/cljs-completions cljs-eval-fn "-ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))
     (is (= [(candidate "baz" "(.. js/foo zork)")]
-           (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "ba"} "(.. js/foo zork (__prefix__ \"foo\"))")))))
+           (sut/cljs-completions cljs-eval-fn "ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -183,15 +183,16 @@
   (with-fake-js-completions cljs-eval-fn
     "js/console" "l" [{:name "log" :hierarchy 1 :type "function"}
                       {:name "clear" :hierarchy 1 :type "function"}]
-    (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol ".l"} "(__prefix__ js/console)"))
+    (sut/cljs-completions cljs-eval-fn ".l" {:ns "cljs.user" :context "(__prefix__ js/console)"}))
 
   (with-fake-js-completions cljs-eval-fn
     "(this-as this this)" "c" [{:name "console" :hierarchy 1 :type "var"}]
-    (sut/handle-completion-msg cljs-eval-fn {:ns "cljs.user" :symbol "js/c"} ""))
+    (sut/cljs-completions cljs-eval-fn "js/c" {:ns "cljs.user" :context ""}))
 
   (sut/expr-for-parent-obj {:ns nil :symbol "foo" :context "(__prefix__ foo)"})
   (sut/expr-for-parent-obj {:ns "cljs.user" :symbol ".l" :context "(__prefix__ js/console)"})
 
   (with-redefs [sut/js-properties-of-object (fn [obj-expr msg] [])]
-    (sut/handle-completion-msg {:ns "cljs.user" :symbol ".l" :context "(__prefix__ js/console)"} nil))
+    (sut/cljs-completions {:ns "cljs.user" :symbol ".l" :context "(__prefix__ js/console)"} nil))
+
   )
