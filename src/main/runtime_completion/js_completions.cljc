@@ -23,7 +23,6 @@
                                                         :hierarchy int?
                                                         :type ::spec/non-empty-string}))) %)]}
    (let [code (cl-format nil obj-expr-eval-template obj-expr prefix)]
-     (sc.api/spy)
      (cljs-eval-fn ns code))))
 
 (defn find-prefix [form]
@@ -124,7 +123,7 @@
           ;; builds an expr like
           ;; "(this-as this (.. this -window))" for symbol = "js/window.console"
           ;; or "(this-as this this)" for symbol = "js/window"
-          obj-expr (cl-format nil "(this-as this ~[this~:;(.. this ~{-~A~})~])"
+          obj-expr (cl-format nil "(this-as this ~[this~:;(.. this ~{-~A~^ ~})~])"
                               (count obj-expr-parts) obj-expr-parts)]
       obj-expr-parts
       {:prefix prefix

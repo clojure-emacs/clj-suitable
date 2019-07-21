@@ -38,7 +38,6 @@
                     "var")
                   (catch js/Error e "var"))})))))
 
-
 (comment
   (require '[cljs.pprint :refer [pprint]])
   ;; (-> js/console property-names-and-types pprint)
