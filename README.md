@@ -19,6 +19,8 @@ The animation shows how various properties and methods of the native DOM can be 
 
 ## Setup
 
+suitable is on clojars: [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
+
 ### figwheel.main with rebel-readline
 
 Please note that you need to use [rebel-readline](https://github.com/bhauman/rebel-readline) with figwheel for that to work. Plain repls have no completion feature.
