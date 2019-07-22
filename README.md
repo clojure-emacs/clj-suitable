@@ -90,6 +90,9 @@ Or from within Clojure:
 
 ## How does it work?
 
+suitable uses the same input as the widely used [compliment](https://github.com/alexander-yakushev/compliment). This means, it gets a prefix string and a context form from the tool it is connected to. For example you type `(.l| js/console)` with "|" marking where your cursor is. The input suitable gets would be: prefix = `.l` and context = `(__prefix__ js/console)`.
+
+Suitable recognizes various ways how CLJS can access properties and methods, such as `.`, `..`, `doto`, and threading forms. Also direct global access is supported such as `js/console.log`. Suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system the uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are then converted into completion candidates and send back to the tooling.
 
 ## License
 
