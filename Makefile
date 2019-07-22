@@ -8,3 +8,6 @@ pom.xml: deps.edn
 	clojure -Spom
 
 all: pom.xml clj-runtime-completion.jar
+
+install: all
+	mvn install:install-file -Dfile=clj-runtime-completion.jar -DpomFile=pom.xml

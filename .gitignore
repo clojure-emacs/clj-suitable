@@ -1,3 +1,4 @@
 .nrepl-port
 /target/
 /.cpcache/
+/clj-runtime-completion.jar
