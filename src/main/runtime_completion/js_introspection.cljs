@@ -1,8 +1,6 @@
-(ns runtime-completion.core
-  (:require [clojure.spec.alpha :as s]
-            [clojure.string :refer [starts-with?]]
-            [goog.object :refer [get] :rename {get oget}]
-            [runtime-completion.spec :as spec]))
+(ns runtime-completion.js-introspection
+  (:require [clojure.string :refer [starts-with?]]
+            [goog.object :refer [get] :rename {get oget}]))
 
 (defn properties-by-prototype
   ""
@@ -17,9 +15,6 @@
 (defn property-names-and-types
   ([js-obj] (property-names-and-types js-obj nil))
   ([js-obj prefix]
-   {:pre [(s/valid? (complement nil?) js-obj)
-          (s/valid? (s/nilable string?) prefix)]
-    :post [(s/valid? (s/coll-of ::spec/obj-property) %)]}
    (let [seen (transient #{})]
      (for [[i {:keys [obj props]}] (map-indexed vector (properties-by-prototype js-obj))
            key (js-keys props)

@@ -7,10 +7,6 @@
             [runtime-completion.ast :refer [tree-zipper]]
             [runtime-completion.spec :as spec]))
 
-(def ^:private obj-expr-eval-template "(do
-  (require 'runtime-completion.core)
-  (runtime-completion.core/property-names-and-types ~A ~S))")
-
 (defn- js-properties-of-object
   "Returns the properties of the object we get by evaluating `obj-expr` filtered
   by all those that start with `prefix`."
@@ -23,10 +19,17 @@
                              :value (s/coll-of (s/keys {:name ::spec/non-empty-string
                                                         :hierarchy int?
                                                         :type ::spec/non-empty-string}))) %)]}
-   (let [code (cl-format nil obj-expr-eval-template obj-expr prefix)]
-     (try
-       (cljs-eval-fn ns code)
-       (catch Exception e {:error e})))))
+   (try
+     ;; :Not using a single expressiont / eval call here like
+     ;; (do (require ...) (runtime ...))
+     ;; to avoid
+     ;; Compile Warning:  Use of undeclared Var
+     ;;   runtime-completion.js-introspection/property-names-and-types
+     (let [template "(runtime-completion.js-introspection/property-names-and-types ~A ~S)"
+           code (cl-format nil template obj-expr prefix)]
+       (cljs-eval-fn ns "(require 'runtime-completion.js-introspection)")
+       (cljs-eval-fn ns code))
+     (catch Exception e {:error e}))))
 
 (defn find-prefix [form]
   "Tree search for the symbol '__prefix. Returns a zipper."

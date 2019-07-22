@@ -20,10 +20,10 @@
 
 (defn fake-cljs-eval-fn [expected-obj-expression expected-prefix properties]
   (fn [ns code]
-    (let [[_ obj-expr prefix]
-         (re-matches
-          #"^\(do\n  \(require 'runtime-completion.core\)\n  \(runtime-completion.core/property-names-and-types (.*) \"(.*)\"\)\)"
-          code)]
+    (when-let [[_ obj-expr prefix]
+               (re-matches
+                #"^\(runtime-completion.js-introspection/property-names-and-types (.*) \"(.*)\"\)"
+                code)]
       (if (and (= obj-expr expected-obj-expression)
                (= prefix expected-prefix))
         {:error nil

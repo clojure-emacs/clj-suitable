@@ -40,13 +40,6 @@
 
 (defonce state (atom nil))
 
-(comment
-  (cljs-eval (-> @state :session) (-> @state :ns) "(+ 1 2)")
-  (cljs-eval (-> @state :session) (-> @state :ns) "(+ 222 333) (+ 1 2)")
-  (cljs-eval (-> @state :session) (-> @state :ns) "(ns-interns 'runtime-completion.core)")
-  (cljs-eval (-> @state :session) (-> @state :ns) "(runtime-completion.core/properties-by-prototype js/console)")
-  )
-
 (defn cljs-dynamic-completion-handler
   [next-handler {:keys [id session transport op ns symbol context extra-metadata] :as msg}]
 
@@ -123,18 +116,6 @@
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 (comment
-  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "(require 'cider.piggieback) (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env))"})))
-  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "(require 'figwheel.main) (figwheel.main/start :fig)"})))
-  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "(require 'figwheel.main) (figwheel.main/stop-builds :fig)"})))
-  (pprint (doall (nrepl.core/message sess1 {:op :eval :code ":cljs/quit"})))
-  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "js/console"})))
-  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "123"})))
-  (nrepl.core/message sess1 {:op :eval :code "(list 1 2 3)"})
-  )
-
-
-(comment
-
 
   (do (start-nrepl-server)
       (start-nrepl-client)
@@ -144,59 +125,12 @@
       (require 'figwheel.main.api)
       (figwheel.main.api/stop-all))
 
-  (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "fig")
-  (class Transport)
-  123
-  (send-eval "(require 'runtime-completion.core)")
-  (send-eval "123")
-
-  (send-eval "(require 'figwheel.main.api) (figwheel.main.api/cljs-repl \"fig\")")
-  (send-eval ":cljs/quit")
-
-  (@send-msg {:op :close})
-
-  (@send-msg {:op :complete :symbol "js/co" :ns "cljs.user" :context nil})
-  (@send-msg {:op :complete :symbol "cljs." :ns "runtime-completion.core" :context nil})
-
-  (require '[cider.nrepl.inlined-deps.cljs-tooling.v0v3v1.cljs-tooling.complete :as cljs-complete])
-  (require '[cider.nrepl.middleware.util.cljs :as cljs])
-
-  (let [ns (symbol "cljs.user")
-        prefix (str "cljs.co")
-        extra-metadata (set (map keyword nil))
-        cljs-env (some-> (figwheel.main.api/repl-env "fig") :repl-options deref :compiler-env deref)]
-    (cljs-complete/completions cljs-env prefix {:context-ns ns
-                                                :extra-metadata extra-metadata}))
-
-  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-
-
-  (send-eval "123")
-
-
-  (send-eval "(require 'figwheel.main) (figwheel.main/start :fig)")
-  (send-eval "*ns*")
-  (send-eval "js/console")
-
-
-  (-> @figwheel.main/build-registry (get "fig"))
-  (figwheel.main.watching/reset-watch!)
-
-  (def server (-> @figwheel.main/build-registry (get "fig")  :repl-env :server deref))
-  (.stop server)
-
-  (figwheel.main/stop-builds :fig)
-
-  (-> (read-string "(.log (foo (__prefix__)))") walk/prewalk-demo)
-  (-> (read-string "(.log (foo (__prefix__)))") walk/postwalk-demo)
-  (-> (read-string "(.log (foo (__prefix__)))") tree-seq)
-
-  (tree-seq )
-
-  (require '[clojure.zip :as zip])
-  (require '[clojure.walk :as walk])
-
-  (walk/prewalk-demo)
+  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "(require 'cider.piggieback) (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env))"})))
+  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "(require 'figwheel.main) (figwheel.main/start :fig)"})))
+  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "(require 'figwheel.main) (figwheel.main/stop-builds :fig)"})))
+  (pprint (doall (nrepl.core/message sess1 {:op :eval :code ":cljs/quit"})))
+  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "js/console"})))
+  (pprint (doall (nrepl.core/message sess1 {:op :eval :code "123"})))
+  (nrepl.core/message sess1 {:op :eval :code "(list 1 2 3)"})
 
   )

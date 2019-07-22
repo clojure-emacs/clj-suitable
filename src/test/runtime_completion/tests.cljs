@@ -1,13 +1,13 @@
 (ns runtime-completion.tests
   (:require [cljs.test :refer-macros [deftest is run-tests testing]]
             [goog.object :refer [get set] :rename {get oget, set oset}]
-            [runtime-completion.core :as compl]))
+            [runtime-completion.js-introspection :as inspector]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; helpers
 
 (defn- find-prop-named [obj name]
-  (->> obj compl/property-names-and-types
+  (->> obj inspector/property-names-and-types
        (filter (comp (set [name]) :name))
        first))
 
