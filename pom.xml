@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.rksm</groupId>
   <artifactId>suitable</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <name>suitable</name>
   <description>An addon for Figwheel and Emacs Cider to aid live exploratory development. Queries objects in ClojureScript for their properties to use as part of nREPL completion handlers.</description>
   <url>http://github.com/rksm/clj-suitable</url>
@@ -54,6 +54,14 @@
     <developerConnection>scm:git:ssh://git@github.com/rksm/clj-suitable.git</developerConnection>
     <!-- <tag>c3ba65700f69e4b1f269ff12c34fea255c57b5dc</tag> -->
   </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>clojars</id>
+      <name>Clojars repository</name>
+      <url>https://clojars.org/repo</url>
+    </repository>
+  </distributionManagement>
 
   <repositories>
     <repository>
