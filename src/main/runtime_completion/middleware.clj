@@ -53,7 +53,7 @@
                                 (assoc prev-state :context context))}))
     (when-let [completions (cljs-completions cljs-eval-fn symbol options-map)]
       (completion-answer msg completions))))
-runtime-completion.middleware/cljs-dynamic-completion-handler
+
 (defn- cljs-dynamic-completion-handler
   "Handles op = \"complete\". Will try to fetch object completions but also allows
   the default completion handler to act."

@@ -1,4 +1,5 @@
 (ns runtime-completion.js-completions
+  (:refer-clojure :exclude [replace])
   (:require [clojure.pprint :refer [cl-format]]
             [clojure.spec.alpha :as s]
             [clojure.string :refer [replace split starts-with?]]
@@ -23,7 +24,9 @@
                                                         :hierarchy int?
                                                         :type ::spec/non-empty-string}))) %)]}
    (let [code (cl-format nil obj-expr-eval-template obj-expr prefix)]
-     (cljs-eval-fn ns code))))
+     (try
+       (cljs-eval-fn ns code)
+       (catch Exception e {:error e})))))
 
 (defn find-prefix [form]
   "Tree search for the symbol '__prefix. Returns a zipper."
@@ -49,11 +52,13 @@
   "Given the context and symbol of a completion request, will try to find an
   expression that evaluates to the object being accessed."
   [symbol context]
-  (when-let [form (try
-                    (with-in-str context (read *in* nil nil))
-                    (catch Exception e
-                      (cl-format *err* "error while gathering cljs runtime completions: ~S~%" e)
-                      nil))]
+  (when-let [form (if (string? context)
+                    (try
+                      (with-in-str context (read *in* nil nil))
+                      (catch Exception e
+                        (cl-format *err* "error while gathering cljs runtime completions: ~S~%" e)
+                        nil))
+                    context)]
     (let [prefix (find-prefix form)
           left-sibling (zip/left prefix)
           first? (nil? left-sibling)
@@ -170,17 +175,18 @@
   are :extra-metadata :sort-order and :plain-candidates."
   [cljs-eval-fn symbol {:keys [ns context] :as options-map}]
   {:pre [(s/valid? ::spec/non-empty-string symbol)
-         (s/valid? string? context)]
+         (s/valid? (s/nilable (s/or :string string? :form list?)) context)]
    :post [(s/valid? (s/nilable ::spec/completions) %)]}
 
   (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type]}
         (analyze-symbol-and-context symbol context)
         global? (#{:global} type)]
     (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
-      (for [{:keys [name type]} properties
-            :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
-                  candidate (str prepend-to-candidate maybe-dash name)]
-            :when (starts-with? candidate symbol)]
-        (do
-          {:type type :candidate candidate :ns (if global? "js" obj-expr)})))))
-
+      (if error
+        (throw error)
+        (for [{:keys [name type]} properties
+              :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
+                    candidate (str prepend-to-candidate maybe-dash name)]
+              :when (starts-with? candidate symbol)]
+          (do
+            {:type type :candidate candidate :ns (if global? "js" obj-expr)}))))))

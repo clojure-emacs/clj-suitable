@@ -146,8 +146,9 @@
            (sut/cljs-completions cljs-eval-fn ".l" {:ns "cljs.user" :context "(__prefix__ js/console)"})))
     (is (= [(candidate "log" "js/console")]
            (sut/cljs-completions cljs-eval-fn "l" {:ns "cljs.user" :context "(. js/console __prefix__)"})))
+    ;; note: we're testing context with a form here
     (is (= [(candidate "log" "js/console")]
-           (sut/cljs-completions cljs-eval-fn "l" {:ns "cljs.user" :context "(.. js/console (__prefix__ \"foo\"))"})))))
+           (sut/cljs-completions cljs-eval-fn "l" {:ns "cljs.user" :context '(.. js/console (__prefix__ "foo"))})))))
 
 (deftest dotdot-completion
   (let [cljs-eval-fn (fake-cljs-eval-fn "js/foo" "ba" [{:name "bar" :hierarchy 1 :type "var"}
@@ -179,6 +180,7 @@
 
 (comment
 
+  (run-tests)
 
   (with-fake-js-completions cljs-eval-fn
     "js/console" "l" [{:name "log" :hierarchy 1 :type "function"}
