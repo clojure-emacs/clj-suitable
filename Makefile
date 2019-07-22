@@ -1,3 +1,6 @@
+clean:
+	rm -rf target/public/cljs-out suitable.jar .cpcache
+
 suitable.jar: deps.edn src/**/*
 	clojure -A:pack \
 		mach.pack.alpha.skinny \
