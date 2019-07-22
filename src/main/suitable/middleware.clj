@@ -82,14 +82,14 @@
                  {:doc "Middleware providing runtime completion support."
                   :requires #{"clone"}
                   :expects #{"complete" "eval"}
-                  :handles {"complete"
-                            {:doc "Return a list of symbols matching the specified (partial) symbol."
-                             :requires {"ns" "The symbol's namespace"
-                                        "symbol" "The symbol to lookup"
-                                        "session" "The current session"}
-                             :optional {"context" "Completion context for compliment."
-                                        "extra-metadata" "List of extra-metadata fields. Possible values: arglists, doc."}
-                             :returns {"completions" "A list of possible completions"}}
+                  :handles {;; "complete"
+                            ;; {:doc "Return a list of symbols matching the specified (partial) symbol."
+                            ;;  :requires {"ns" "The symbol's namespace"
+                            ;;             "symbol" "The symbol to lookup"
+                            ;;             "session" "The current session"}
+                            ;;  :optional {"context" "Completion context for compliment."
+                            ;;             "extra-metadata" "List of extra-metadata fields. Possible values: arglists, doc."}
+                            ;;  :returns {"completions" "A list of possible completions"}}
                             ;; "complete-doc"
                             ;; {:doc "Retrieve documentation suitable for display in completion popup"
                             ;;  :requires {"ns" "The symbol's namespace"
