@@ -1,4 +1,4 @@
-# Suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript
+# Suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
 This project is a backend for interactive repls and editors that used runtime
 introspection to provide completion / intellisense support. This can be
@@ -18,8 +18,6 @@ The animation shows how various properties and methods of the native DOM can be 
 ![](doc/2019_07_22_suitable-figwheel.gif)
 
 ## Setup
-
-suitable is on clojars: [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
 ### figwheel.main with rebel-readline
 
