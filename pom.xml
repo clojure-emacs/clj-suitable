@@ -41,7 +41,7 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
+    <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
     <directory>target</directory>
     <outputDirectory>target/classes</outputDirectory>
@@ -65,4 +65,5 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
+
 </project>

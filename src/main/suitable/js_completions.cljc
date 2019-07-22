@@ -186,7 +186,7 @@
         global? (#{:global} type)]
     (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
       (if error
-        (throw error)
+        (binding [*out* *err*] (println error))
         (for [{:keys [name type]} properties
               :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
                     candidate (str prepend-to-candidate maybe-dash name)]
