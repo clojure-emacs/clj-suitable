@@ -1,4 +1,4 @@
-# Suitable - reddit: An addon for Figwheel and Emacs Cider to aid live exploratory development in ClojureScript
+# Suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript
 
 This project is a backend for interactive repls and editors that provide
 completion / intellisense support.
@@ -8,7 +8,7 @@ and methods of objects at runtime via reflection to generate completion
 candidates out of them. This can be extremely useful and productive if you're
 experimenting around with unknown APIs.
 
-Currently Emacs (via Cider) and figwheel.main are supported.
+Currently Emacs (via CIDER) and figwheel.main are supported.
 
 ## Demo
 
@@ -52,7 +52,7 @@ Add `[org.rksm/suitable "0.1.0"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
-### Emacs Cider
+### Emacs CIDER
 
 For usage with `cider-jack-in-cljs` add these two lines to your emacs config:
 
