@@ -2,6 +2,17 @@
   (:require [clojure.string :refer [starts-with?]]
             [goog.object :refer [get] :rename {get oget}]))
 
+(def own-property-descriptors
+  (if (js-in "getOwnPropertyDescriptors" js/Object)
+    ;; ES 6+ version
+    (fn [obj] (js/Object.getOwnPropertyDescriptors obj))
+    ;; ES 5.1 version
+    (fn [obj] (->> obj
+                   js/Object.getOwnPropertyNames
+                   (map (fn [key] [key (js/Object.getOwnPropertyDescriptor obj key)]))
+                   (into {})
+                   clj->js))))
+
 (defn properties-by-prototype
   ""
   [obj]
@@ -9,7 +20,7 @@
     (if obj
       (recur
        (js/Object.getPrototypeOf obj)
-       (conj protos {:obj obj :props (js/Object.getOwnPropertyDescriptors obj)}))
+       (conj protos {:obj obj :props (own-property-descriptors obj)}))
       protos)))
 
 (defn property-names-and-types
@@ -43,5 +54,4 @@
 
   (oget js/console "log")
   (-> js/console property-names-and-types pprint)
-  (-> js/window property-names-and-types pprint)
-  )
+  (-> js/window property-names-and-types pprint))
