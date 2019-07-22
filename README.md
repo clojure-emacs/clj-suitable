@@ -1,18 +1,19 @@
 # Suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript
 
-This project is a backend for interactive repls and editors that provide
-completion / intellisense support.
+This project is a backend for interactive repls and editors that used runtime
+introspection to provide completion / intellisense support. This can be
+extremely useful and productive if you're experimenting around with unknown
+APIs.
 
-It is mainly useful for cljs / js interop as it tries to access the properties
-and methods of objects at runtime via reflection to generate completion
-candidates out of them. This can be extremely useful and productive if you're
-experimenting around with unknown APIs.
+For example you work with DOM objects but can't remember how to query for child
+elements. Type `(.| js/document)` with `|` marking the postion of your cursor
+and press TAB. Methods and properties of `js/document` will appear.
 
 Currently Emacs (via CIDER) and figwheel.main are supported.
 
 ## Demo
 
-The animation shows how various properties and methods of the native DOM can be accessed (Tab is used to show completions for the expression at the cursor)
+The animation shows how various properties and methods of the native DOM can be accessed (Tab is used to show completions for the expression at the cursor):
 
 ![](doc/2019_07_22_suitable-figwheel.gif)
 
@@ -92,7 +93,7 @@ Or from within Clojure:
 
 suitable uses the same input as the widely used [compliment](https://github.com/alexander-yakushev/compliment). This means, it gets a prefix string and a context form from the tool it is connected to. For example you type `(.l| js/console)` with "|" marking where your cursor is. The input suitable gets would be: prefix = `.l` and context = `(__prefix__ js/console)`.
 
-Suitable recognizes various ways how CLJS can access properties and methods, such as `.`, `..`, `doto`, and threading forms. Also direct global access is supported such as `js/console.log`. Suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system the uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are then converted into completion candidates and send back to the tooling.
+Suitable recognizes various ways how CLJS can access properties and methods, such as `.`, `..`, `doto`, and threading forms. Also direct global access is supported such as `js/console.log`. Suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system then uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are then converted into completion candidates and send back to the tooling.
 
 ## License
 
