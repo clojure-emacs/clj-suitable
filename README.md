@@ -1,7 +1,7 @@
 # Suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
-This project is a completion backend for interactive repls and editors that used runtime
-introspection to provide completion / intellisense support. This can be
+This project is a code completion backend for interactive repls and editors that used runtime
+introspection to provide "intellisense" support. This can be
 extremely useful and productive if you're experimenting around with unknown
 APIs.
 
