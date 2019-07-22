@@ -29,10 +29,10 @@ First make sure that the [normal Tools CLI setup](https://figwheel.org/#setting-
 Then modify your `deps.edn` so that org.rksm/suitable and it's setup code are included:
 
 ```clojure
- :aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "0.1.0"}}
-	                  :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
-                                  "-m" "figwheel.main"
-                                  "--build" "dev" "--repl"]}}
+:aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "0.1.0"}}
+                     :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
+                                 "-m" "figwheel.main"
+                                 "--build" "dev" "--repl"]}}
 ```
 
 Also add a preload to your `dev.cljs.edn`:
