@@ -3,7 +3,7 @@
 
  :paths ["src/main"]
 
- :aliases {;; for starting nrepl clj & cljs servers for live development
+ :aliases { ;; for starting nrepl clj & cljs servers for live development
            :dev {:extra-paths ["src/dev" "resources" "target"]
                  :extra-deps {cider/piggieback {:mvn/version "RELEASE"}
                               com.bhauman/figwheel-main {:mvn/version "RELEASE"}
@@ -15,7 +15,10 @@
                         :main-opts ["-m" "figwheel.main" "-b" "fig"]}
 
            ;; tests
-           :test {:extra-paths ["src/test"]}
+           :test {:extra-paths ["src/test"]
+                  :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                                          :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}}
+                  :main-opts ["-m" "cognitect.test-runner"]}
 
            ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
            :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
