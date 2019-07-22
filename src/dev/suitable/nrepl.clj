@@ -7,7 +7,7 @@
             nrepl.core
             nrepl.server
             refactor-nrepl.middleware
-            [suitable.middleware :refer [wrap-cljs-dynamic-completions]]))
+            [suitable.middleware :refer [wrap-complete]]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -41,7 +41,7 @@
 (defn start-cljs-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
         middlewares (conj middlewares #'cider.piggieback/wrap-cljs-repl)
-        middlewares (conj middlewares #'wrap-cljs-dynamic-completions)
+        middlewares (conj middlewares #'wrap-complete)
         ;; handler (nrepl.server/default-handler #'cider.piggieback/wrap-cljs-repl)
         handler (apply nrepl.server/default-handler middlewares)]
     (reset! cljs-nrepl-server (nrepl.server/start-server :handler handler :port 7889)))
