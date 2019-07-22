@@ -75,29 +75,27 @@
   ;; call next-handler in any case - we want the default completions as well
   (next-handler msg))
 
-(defn wrap-cljs-dynamic-completions [handler]
+(defn wrap-complete [handler]
   (fn [msg] (cljs-dynamic-completion-handler handler msg)))
 
-(set-descriptor! #'wrap-cljs-dynamic-completions
-                 {:requires #{"clone"}
+(set-descriptor! #'wrap-complete
+                 {:doc "Middleware providing runtime completion support."
+                  :requires #{"clone"}
                   :expects #{"complete" "eval"}
-                  :handles {}})
+                  :handles {"complete"
+                            {:doc "Return a list of symbols matching the specified (partial) symbol."
+                             :requires {"ns" "The symbol's namespace"
+                                        "symbol" "The symbol to lookup"
+                                        "session" "The current session"}
+                             :optional {"context" "Completion context for compliment."
+                                        "extra-metadata" "List of extra-metadata fields. Possible values: arglists, doc."}
+                             :returns {"completions" "A list of possible completions"}}
+                            ;; "complete-doc"
+                            ;; {:doc "Retrieve documentation suitable for display in completion popup"
+                            ;;  :requires {"ns" "The symbol's namespace"
+                            ;;             "symbol" "The symbol to lookup"}
+                            ;;  :returns {"completion-doc" "Symbol's documentation"}}
+                            ;; "complete-flush-caches"
+                            ;; {:doc "Forces the completion backend to repopulate all its caches"}
+                            }})
 
-;; (cider.nrepl.middleware.util.cljs/requires-piggieback
-;;    {:doc "Middleware providing completion support."
-;;     :requires #{#'session}
-;;     :handles {"complete"
-;;               {:doc "Return a list of symbols matching the specified (partial) symbol."
-;;                :requires {"ns" "The symbol's namespace"
-;;                           "symbol" "The symbol to lookup"
-;;                           "session" "The current session"}
-;;                :optional {"context" "Completion context for compliment."
-;;                           "extra-metadata" "List of extra-metadata fields. Possible values: arglists, doc."}
-;;                :returns {"completions" "A list of possible completions"}}
-;;               "complete-doc"
-;;               {:doc "Retrieve documentation suitable for display in completion popup"
-;;                :requires {"ns" "The symbol's namespace"
-;;                           "symbol" "The symbol to lookup"}
-;;                :returns {"completion-doc" "Symbol's documentation"}}
-;;               "complete-flush-caches"
-;;               {:doc "Forces the completion backend to repopulate all its caches"}}})

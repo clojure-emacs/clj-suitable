@@ -65,10 +65,10 @@
   (next-handler msg))
 
 
-(defn wrap-cljs-dynamic-completions [handler]
+(defn wrap-complete [handler]
   (fn [msg] (cljs-dynamic-completion-handler handler msg)))
 
-(set-descriptor! #'wrap-cljs-dynamic-completions
+(set-descriptor! #'wrap-complete
                  {:requires #{"clone"}
                   :expects #{"complete" "eval"}
                   :handles {}})
@@ -89,7 +89,7 @@
 (defn start-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
         middlewares (conj middlewares #'cider.piggieback/wrap-cljs-repl)
-        middlewares (conj middlewares #'suitable.middleware/wrap-cljs-dynamic-completions)
+        middlewares (conj middlewares #'suitable.middleware/wrap-complete)
         ;; handler (nrepl.server/default-handler #'cider.piggieback/wrap-cljs-repl)
         handler (apply nrepl.server/default-handler middlewares)]
    (reset! server (nrepl.server/start-server :handler handler :port 7889)))
