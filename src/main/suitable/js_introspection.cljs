@@ -1,4 +1,4 @@
-(ns runtime-completion.js-introspection
+(ns suitable.js-introspection
   (:require [clojure.string :refer [starts-with?]]
             [goog.object :refer [get] :rename {get oget}]))
 

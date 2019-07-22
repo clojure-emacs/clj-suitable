@@ -1,8 +1,8 @@
-(ns runtime-completion.utils
+(ns suitable.utils
   (:require cljs.env ))
 
 (defn wrapped-cljs-repl-eval
-  "cljs-eval-fn for `runtime-completion.cljs-completions` that can be used when a
+  "cljs-eval-fn for `suitable.cljs-completions` that can be used when a
   repl-env and compiler env are accessible, e.g. when running a normal repl."
   [repl-env compiler-env]
   (fn [ns code]

@@ -1,8 +1,8 @@
-(ns runtime-completion.js-completion-tests
+(ns suitable.js-completion-tests
   (:require [clojure.pprint :refer [cl-format]]
             [clojure.string :refer [starts-with?]]
             [clojure.test :as t :refer [deftest is run-tests]]
-            [runtime-completion.js-completions :as sut]))
+            [suitable.js-completions :as sut]))
 
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -22,7 +22,7 @@
   (fn [ns code]
     (when-let [[_ obj-expr prefix]
                (re-matches
-                #"^\(runtime-completion.js-introspection/property-names-and-types (.*) \"(.*)\"\)"
+                #"^\(suitable.js-introspection/property-names-and-types (.*) \"(.*)\"\)"
                 code)]
       (if (and (= obj-expr expected-obj-expression)
                (= prefix expected-prefix))

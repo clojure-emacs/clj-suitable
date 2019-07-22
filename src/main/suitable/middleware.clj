@@ -1,8 +1,8 @@
-(ns runtime-completion.middleware
+(ns suitable.middleware
   (:require [clojure.edn :as edn]
             [nrepl.middleware :refer [set-descriptor!]]
             [nrepl.transport :as transport]
-            [runtime-completion.js-completions :refer [cljs-completions]])
+            [suitable.js-completions :refer [cljs-completions]])
   (:import nrepl.transport.Transport))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

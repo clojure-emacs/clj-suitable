@@ -1,13 +1,13 @@
-clj-runtime-completion.jar: deps.edn src/**/*
+suitable.jar: deps.edn src/**/*
 	clojure -A:pack \
 		mach.pack.alpha.skinny \
 		--no-libs \
-		--project-path clj-runtime-completion.jar
+		--project-path suitable.jar
 
 pom.xml: deps.edn
 	clojure -Spom
 
-all: pom.xml clj-runtime-completion.jar
+all: pom.xml suitable.jar
 
 install: all
-	mvn install:install-file -Dfile=clj-runtime-completion.jar -DpomFile=pom.xml
+	mvn install:install-file -Dfile=suitable.jar -DpomFile=pom.xml

@@ -1,4 +1,4 @@
-(ns runtime-completion.repl
+(ns suitable.repl
   (:require [figwheel.main]
             [figwheel.main.api]
             [nrepl server core]
@@ -8,7 +8,7 @@
             [clojure.zip :as zip]
             [clojure.walk :as walk]
             [cider.piggieback]
-            [runtime-completion.middleware])
+            [suitable.middleware])
   (:import (java.lang Thread)))
 
 
@@ -89,7 +89,7 @@
 (defn start-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
         middlewares (conj middlewares #'cider.piggieback/wrap-cljs-repl)
-        middlewares (conj middlewares #'runtime-completion.middleware/wrap-cljs-dynamic-completions)
+        middlewares (conj middlewares #'suitable.middleware/wrap-cljs-dynamic-completions)
         ;; handler (nrepl.server/default-handler #'cider.piggieback/wrap-cljs-repl)
         handler (apply nrepl.server/default-handler middlewares)]
    (reset! server (nrepl.server/start-server :handler handler :port 7889)))

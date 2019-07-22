@@ -1,4 +1,4 @@
-(ns runtime-completion.ast
+(ns suitable.ast
   (:require [clojure.pprint :refer [pprint *print-right-margin*]]
             [clojure.zip :as z])
    #?(:clj (:import [clojure.lang IPersistentList IPersistentMap IPersistentVector ISeq])))

@@ -1,11 +1,11 @@
-(ns runtime-completion.js-completions
+(ns suitable.js-completions
   (:refer-clojure :exclude [replace])
   (:require [clojure.pprint :refer [cl-format]]
             [clojure.spec.alpha :as s]
             [clojure.string :refer [replace split starts-with?]]
             [clojure.zip :as zip]
-            [runtime-completion.ast :refer [tree-zipper]]
-            [runtime-completion.spec :as spec]))
+            [suitable.ast :refer [tree-zipper]]
+            [suitable.spec :as spec]))
 
 (defn- js-properties-of-object
   "Returns the properties of the object we get by evaluating `obj-expr` filtered
@@ -24,10 +24,10 @@
      ;; (do (require ...) (runtime ...))
      ;; to avoid
      ;; Compile Warning:  Use of undeclared Var
-     ;;   runtime-completion.js-introspection/property-names-and-types
-     (let [template "(runtime-completion.js-introspection/property-names-and-types ~A ~S)"
+     ;;   suitable.js-introspection/property-names-and-types
+     (let [template "(suitable.js-introspection/property-names-and-types ~A ~S)"
            code (cl-format nil template obj-expr prefix)]
-       (cljs-eval-fn ns "(require 'runtime-completion.js-introspection)")
+       (cljs-eval-fn ns "(require 'suitable.js-introspection)")
        (cljs-eval-fn ns code))
      (catch Exception e {:error e}))))
 
@@ -161,7 +161,7 @@
 
   1. `cljs-eval-fn`: a function that given a namespace (as string) and cljs
   code (string) will evaluate it and return the value as a clojure object. See
-  `runtime-completion.middleware/cljs-dynamic-completion-handler` for how to
+  `suitable.middleware/cljs-dynamic-completion-handler` for how to
   setup an eval function with nREPL.
 
   The last two arguments mirror the interface of `compliment.core/completions`

@@ -1,11 +1,11 @@
-(ns runtime-completion.hijack-rebel-readline-complete
+(ns suitable.hijack-rebel-readline-complete
   (:require [cljs-tooling.complete :as cljs-complete]
             cljs.env
             cljs.repl
             [rebel-readline.cljs.service.local :as rebel-cljs]
             [rebel-readline.clojure.line-reader :as clj-reader]
-            [runtime-completion.js-completions :refer [cljs-completions]]
-            [runtime-completion.utils :refer [wrapped-cljs-repl-eval]]))
+            [suitable.js-completions :refer [cljs-completions]]
+            [suitable.utils :refer [wrapped-cljs-repl-eval]]))
 
 
 ;; This is a rather huge hack. rebel-readline doesn't really have any hooks for
@@ -20,8 +20,8 @@
                   ns (assoc :current-ns ns))]
     (let [renv cljs.repl/*repl-env*
           cenv @cljs.env/*compiler*
-          runtime-completions (cljs-completions
+          suitables (cljs-completions
                                (wrapped-cljs-repl-eval renv cenv)
                                word {:ns ns :context context})
           completions (cljs-complete/completions cenv word options)]
-      (concat runtime-completions completions))))
+      (concat suitables completions))))

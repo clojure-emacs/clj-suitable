@@ -5,4 +5,4 @@
   :reload-clj-files #{:clj :cljc}
   :cljs-devtools true
   :ansi-color-output true}
-{:main runtime-completion.main}
+{:main suitable.main}

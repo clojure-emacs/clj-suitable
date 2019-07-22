@@ -8,7 +8,7 @@
                  :extra-deps {cider/piggieback {:mvn/version "RELEASE"}
                               com.bhauman/figwheel-main {:mvn/version "RELEASE"}
                               cider/cider-nrepl {:mvn/version "RELEASE"}}
-                 :main-opts ["-m" "runtime-completion.nrepl"]}
+                 :main-opts ["-m" "suitable.nrepl"]}
 
            ;; build the cljs dev stuff, optional
            :build-cljs {:extra-paths ["resources" "target"]

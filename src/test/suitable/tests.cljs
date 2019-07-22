@@ -1,7 +1,7 @@
-(ns runtime-completion.tests
+(ns suitable.tests
   (:require [cljs.test :refer-macros [deftest is run-tests testing]]
             [goog.object :refer [get set] :rename {get oget, set oset}]
-            [runtime-completion.js-introspection :as inspector]))
+            [suitable.js-introspection :as inspector]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; helpers
