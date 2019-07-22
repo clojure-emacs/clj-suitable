@@ -1,4 +1,4 @@
-# Suitable - An addon for Figwheel and Emacs Cider to aid live exploratory development
+# Suitable - reddit: An addon for Figwheel and Emacs Cider to aid live exploratory development in ClojureScript
 
 This project is a backend for interactive repls and editors that provide
 completion / intellisense support.
@@ -9,3 +9,5 @@ candidates out of them. This can be extremely useful and productive if you're
 experimenting around with unknown APIs.
 
 ## Demo
+
+![](doc/2019_07_22_suitable-figwheel.gif) 
