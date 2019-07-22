@@ -1,4 +1,4 @@
-(ns suitable.tests
+(ns suitable.js-introspection-test
   (:require [cljs.test :refer-macros [deftest is run-tests testing]]
             [goog.object :refer [get set] :rename {get oget, set oset}]
             [suitable.js-introspection :as inspector]))

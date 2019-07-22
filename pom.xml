@@ -52,16 +52,7 @@
     <url>https://github.com/rksm/clj-suitable</url>
     <connection>scm:git:git://github.com/rksm/clj-suitable.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rksm/clj-suitable.git</developerConnection>
-    <!-- <tag>c3ba65700f69e4b1f269ff12c34fea255c57b5dc</tag> -->
   </scm>
-
-  <distributionManagement>
-    <repository>
-      <id>clojars</id>
-      <name>Clojars repository</name>
-      <url>https://clojars.org/repo</url>
-    </repository>
-  </distributionManagement>
 
   <repositories>
     <repository>

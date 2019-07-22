@@ -1,4 +1,4 @@
-(ns suitable.js-completion-tests
+(ns suitable.js-completion-test
   (:require [clojure.pprint :refer [cl-format]]
             [clojure.string :refer [starts-with?]]
             [clojure.test :as t :refer [deftest is run-tests]]
