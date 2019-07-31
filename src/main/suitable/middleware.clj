@@ -1,9 +1,24 @@
 (ns suitable.middleware
   (:require [clojure.edn :as edn]
-            [nrepl.middleware :refer [set-descriptor!]]
-            [nrepl.transport :as transport]
-            [suitable.js-completions :refer [cljs-completions]])
-  (:import nrepl.transport.Transport))
+            [suitable.js-completions :refer [cljs-completions]]))
+
+;; rk 2019-07-23: this is adapted from refactor_nrepl.middleware
+;; Compatibility with the legacy tools.nrepl and the new nREPL 0.4.x.
+;; The assumption is that if someone is using old lein repl or boot repl
+;; they'll end up using the tools.nrepl, otherwise the modern one.
+(when-not (resolve 'set-descriptor!)
+  (if (find-ns 'clojure.tools.nrepl)
+    (do (require
+         '[clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+         '[clojure.tools.nrepl.misc :refer [response-for]]
+         '[clojure.tools.nrepl.transport :as transport])
+        (import 'clojure.tools.nrepl.transport.Transport))
+    (do
+      (require
+       '[nrepl.middleware :refer [set-descriptor!]]
+       '[nrepl.misc :refer [response-for]]
+       '[nrepl.transport :as transport])
+      (import 'nrepl.transport.Transport))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
