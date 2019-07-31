@@ -6,7 +6,6 @@
             figwheel.main.api
             nrepl.core
             nrepl.server
-            refactor-nrepl.middleware
             [suitable.middleware :refer [wrap-complete]]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -25,7 +24,8 @@
 
 (defn start-clj-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
-        middlewares (conj middlewares (resolve 'refactor-nrepl.middleware/wrap-refactor))
+        middlewares (if-let [rf (resolve 'refactor-nrepl.middleware/wrap-refactor)]
+                      (conj middlewares rf) middlewares)
         handler (apply nrepl.server/default-handler middlewares)]
     (pprint middlewares)
     (reset! clj-nrepl-server (nrepl.server/start-server :handler handler :port 7888)))

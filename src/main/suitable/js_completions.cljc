@@ -29,7 +29,7 @@
            code (cl-format nil template obj-expr prefix)]
        (cljs-eval-fn ns "(require 'suitable.js-introspection)")
        (cljs-eval-fn ns code))
-     (catch Exception e {:error e}))))
+     (catch #?(:clj Exception :cljs js/Error) e {:error e}))))
 
 (defn find-prefix [form]
   "Tree search for the symbol '__prefix. Returns a zipper."
@@ -59,7 +59,8 @@
                     (try
                       (with-in-str context (read *in* nil nil))
                       (catch Exception e
-                        (cl-format *err* "error while gathering cljs runtime completions: ~S~%" e)
+                        (cl-format #?(:clj *err* :cljs true)
+                                   "error while gathering cljs runtime completions: ~S~%" e)
                         nil))
                     context)]
     (let [prefix (find-prefix form)

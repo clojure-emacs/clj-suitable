@@ -3,9 +3,12 @@
             [clojure.zip :as z])
    #?(:clj (:import [clojure.lang IPersistentList IPersistentMap IPersistentVector ISeq])))
 
-(def V #?(:clj IPersistentVector) #?(:cljs PersistentVector))
-(def M #?(:clj IPersistentMap) #?(:cljs PersistentArrayMap))
-(def L #?(:clj IPersistentList) #?(:cljs List))
+(def V #?(:clj IPersistentVector
+          :cljs PersistentVector))
+(def M #?(:clj IPersistentMap
+          :cljs PersistentArrayMap))
+(def L #?(:clj IPersistentList
+          :cljs List))
 (def S ISeq)
 
 ;; Thx @ Alex Miller! http://www.ibm.com/developerworks/library/j-treevisit/

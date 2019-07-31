@@ -24,3 +24,11 @@ deploy: all
 		-Dfile=suitable.jar \
 		-Durl=https://clojars.org/repo \
 		-DrepositoryId=clojars
+
+fig-repl:
+	clojure -A:fig-repl
+
+nrepl:
+	clojure -A:dev -R:test
+
+.PHONY: clean test all install depoy nrepl fig-repl

@@ -1,4 +1,4 @@
-{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}}
+{:deps {org.clojure/clojurescript {:mvn/version "[1.9.908,)"}}
 
  :paths ["src/main"]
 
@@ -9,9 +9,16 @@
                               cider/cider-nrepl {:mvn/version "RELEASE"}}
                  :main-opts ["-m" "suitable.nrepl"]}
 
+           :fig-repl {:extra-paths ["resources" "target" "src/dev" "src/test"]
+                      :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
+                                  "-m" "figwheel.main" "--build" "fig" "--repl"]
+                      :extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}
+                                   com.bhauman/rebel-readline-cljs {:mvn/version "RELEASE"}}}
+
            ;; build the cljs dev stuff, optional
-           :build-cljs {:extra-paths ["resources" "target"]
-                        :main-opts ["-m" "figwheel.main" "-b" "fig"]}
+           :build-cljs {:extra-paths ["resources" "target" "src/dev" "src/test"]
+                        :main-opts ["-m" "figwheel.main" "-b" "fig"]
+                        :extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}}}
 
            ;; tests
            :test {:extra-paths ["src/test"]

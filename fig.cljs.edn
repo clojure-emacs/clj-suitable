@@ -5,4 +5,5 @@
   :reload-clj-files #{:clj :cljc}
   :cljs-devtools true
   :ansi-color-output true}
-{:main suitable.main}
+{:main suitable.main
+ :preloads [suitable.js-introspection]}
