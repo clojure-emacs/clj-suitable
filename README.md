@@ -6,7 +6,6 @@ extremely useful and productive if you're experimenting around with unknown
 APIs.
 
 For example you work with DOM objects but can't remember how to query for child
-
 elements. Type `(.| js/document)` (with `|` marking the postion of your cursor)
 and press TAB. Methods and properties of `js/document` will appear — including
 `querySelector` and `querySelectorAll`.
