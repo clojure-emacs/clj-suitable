@@ -1,19 +1,24 @@
 # suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
-This project is a code completion backend for interactive repls and editors that use runtime
-introspection to provide "intellisense" support. This can be
+This project is a code completion backend for interactive repls and editors that
+use runtime introspection to provide "IntelliSense" support. This can be
 extremely useful and productive if you're experimenting around with unknown
 APIs.
 
 For example you work with DOM objects but can't remember how to query for child
-elements. Type `(.| js/document)` (with `|` marking the postion of your cursor)
-and press TAB. Methods and properties of `js/document` will appear.
 
-Currently Emacs (via CIDER) and figwheel.main are supported.
+elements. Type `(.| js/document)` (with `|` marking the postion of your cursor)
+and press TAB. Methods and properties of `js/document` will appear — including
+`querySelector` and `querySelectorAll`.
+
+Currently Emacs (via CIDER) and figwheel.main are supported. If you want support
+for your favorite tool please let me know and I'll look into it (no promises,
+though).
 
 ## Demo
 
-The animation shows how various properties and methods of the native DOM can be accessed (Tab is used to show completions for the expression at the cursor):
+The animation shows how various properties and methods of the native DOM can be
+accessed (Tab is used to show completions for the expression at the cursor):
 
 ![](doc/2019_07_22_suitable-figwheel.gif)
 
@@ -21,13 +26,17 @@ The animation shows how various properties and methods of the native DOM can be 
 
 ### figwheel.main with rebel-readline
 
-Please note that you need to use [rebel-readline](https://github.com/bhauman/rebel-readline) with figwheel for that to work. Plain repls have no completion feature.
+Please note that you need to use
+[rebel-readline](https://github.com/bhauman/rebel-readline) with figwheel for
+that to work. Plain repls have no completion feature.
 
 #### Tools CLI
 
-First make sure that the [normal Tools CLI setup](https://figwheel.org/#setting-up-a-build-with-tools-cli) works.
+First make sure that the [normal Tools CLI
+setup](https://figwheel.org/#setting-up-a-build-with-tools-cli) works.
 
-Then modify your `deps.edn` so that org.rksm/suitable and it's setup code are included:
+Then modify your `deps.edn` so that org.rksm/suitable and it's setup code are
+included:
 
 ```clojure
 :aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "0.1.2"}}
@@ -91,9 +100,21 @@ Or from within Clojure:
 
 ## How does it work?
 
-suitable accepts the same input as the widely used [compliment](https://github.com/alexander-yakushev/compliment). This means, it gets a prefix string and a context form from the tool it is connected to. For example you type `(.l| js/console)` with "|" marking where your cursor is. The input suitable gets would be: prefix = `.l` and context = `(__prefix__ js/console)`.
+suitable uses the same input as the widely used
+[compliment](https://github.com/alexander-yakushev/compliment). This means it
+gets a prefix string and a context form from the tool it is connected to. For
+example you type `(.l| js/console)` with "|" marking where your cursor is. The
+input we get would then be: prefix = `.l` and context = `(__prefix__
+js/console)`.
 
-Suitable recognizes various ways how CLJS can access properties and methods, such as `.`, `..`, `doto`, and threading forms. Also direct global access is supported such as `js/console.log`. Suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system then uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are then converted into completion candidates and send back to the tooling.
+suitable recognizes various ways how CLJS can access properties and methods,
+such as `.`, `..`, `doto`, and threading forms. Also direct global access is
+supported such as `js/console.log`. suitable will then figure out the expression
+that defines the "parent object" that the property / method we want to use
+belongs to. For the example above it would be `js/console`. The system then uses
+the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty)
+to enumerate the object members. Those are converted into completion candidates
+and send back to the tooling.
 
 ## License
 
