@@ -1,6 +1,7 @@
 (ns suitable.middleware
   (:require [clojure.edn :as edn]
-            [suitable.js-completions :refer [cljs-completions]]))
+            [suitable.js-completions :refer [cljs-completions]]
+            cljs.repl))
 
 ;; rk 2019-07-23: this is adapted from refactor_nrepl.middleware
 ;; Compatibility with the legacy tools.nrepl and the new nREPL 0.4.x.
@@ -36,6 +37,21 @@
     (eval-fn {:session session :transport transport :code code :ns ns})
     (persistent! result)))
 
+(defn ensure-suitable-cljs-is-loaded [session]
+  (let [session @session
+        renv (get session #'cider.piggieback/*cljs-repl-env*)
+        cenv (get session #'cider.piggieback/*cljs-compiler-env*)
+        opts (get session #'cider.piggieback/*cljs-repl-options*)]
+    (binding [cljs.env/*compiler* cenv
+              cljs.analyzer/*cljs-ns* 'cljs.user]
+      (when (not= "true" (:value (cljs.repl/evaluate renv "<suitable>" 1 "!!goog.getObjectByName('suitable.js_introspection')")))
+        (cljs.repl/load-namespace renv 'suitable.js-introspection opts)
+        (cljs.repl/evaluate renv "<suitable>" 1 "goog.require(\"suitable.js_introspection\"); console.log(\"suitable loaded\"); ")
+        ;; wait as depending on the implemention of goog.require provide by the
+        ;; cljs repl might be async. See
+        ;; https://github.com/rksm/clj-suitable/issues/1 for more details.
+        (Thread/sleep 100)))))
+
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 (defn completion-answer
@@ -58,14 +74,19 @@
   State is kept in session."
   [{:keys [session symbol context ns extra-metadata] :as msg} cljs-eval-fn]
   (let [prev-state (or (get @session #'*object-completion-state*) (empty-state))
-        same-context? (= context ":same")
-        context (if same-context? (:context prev-state) context)
-        context (if (= context "nil") "" context)
+        prev-context (:context prev-state)
+        context (cond
+                  (= context ":same") prev-context
+                  (= context "nil") ""
+                  :else context)
         options-map {:context context :ns ns :extra-metadata extra-metadata}]
-    (swap! session #(merge % {#'*object-completion-state*
-                              (if same-context?
-                                prev-state
-                                (assoc prev-state :context context))}))
+
+    (ensure-suitable-cljs-is-loaded session)
+
+    (when (not= prev-context context)
+      (swap! session #(merge % {#'*object-completion-state*
+                                (assoc prev-state :context context)})))
+
     (when-let [completions (cljs-completions cljs-eval-fn symbol options-map)]
       (completion-answer msg completions))))
 
@@ -74,11 +95,12 @@
   the default completion handler to act."
   [next-handler {:keys [id session ns transport op symbol] :as msg}]
 
-  (when (and (= op "complete")
-             ;; cljs repl?
-             (not= "" symbol)
-             (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
-                                                 cider.piggieback/*cljs-compiler-env*)))
+  (when (and
+         ;; completion request?
+         (= op "complete") (not= "" symbol)
+         ;; cljs?
+         (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
+                                             cider.piggieback/*cljs-compiler-env*)))
 
     (let [cljs-eval-fn
           (fn [ns code] (let [result (cljs-eval session ns code)]
@@ -113,4 +135,3 @@
                             ;; "complete-flush-caches"
                             ;; {:doc "Forces the completion backend to repopulate all its caches"}
                             }})
-
