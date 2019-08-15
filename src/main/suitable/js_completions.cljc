@@ -1,24 +1,16 @@
 (ns suitable.js-completions
   (:refer-clojure :exclude [replace])
   (:require [clojure.pprint :refer [cl-format]]
-            [clojure.spec.alpha :as s]
             [clojure.string :refer [replace split starts-with?]]
             [clojure.zip :as zip]
-            [suitable.ast :refer [tree-zipper]]
-            [suitable.spec :as spec]))
+            [suitable.ast :refer [tree-zipper]]))
 
-(defn- js-properties-of-object
+(defn js-properties-of-object
   "Returns the properties of the object we get by evaluating `obj-expr` filtered
   by all those that start with `prefix`."
   ([cljs-eval-fn ns obj-expr]
    (js-properties-of-object cljs-eval-fn ns obj-expr nil))
   ([cljs-eval-fn ns obj-expr prefix]
-   {:pre [(s/valid? ::spec/non-empty-string obj-expr)
-          (s/valid? (s/nilable string?) prefix)]
-    :post [(s/valid? (s/keys :error (s/nilable string?)
-                             :value (s/coll-of (s/keys {:name ::spec/non-empty-string
-                                                        :hierarchy int?
-                                                        :type ::spec/non-empty-string}))) %)]}
    (try
      ;; :Not using a single expressiont / eval call here like
      ;; (do (require ...) (runtime ...))
@@ -178,10 +170,6 @@
   Currently unsupported options that compliment implements
   are :extra-metadata :sort-order and :plain-candidates."
   [cljs-eval-fn symbol {:keys [ns context] :as options-map}]
-  {:pre [(s/valid? ::spec/non-empty-string symbol)
-         (s/valid? (s/nilable (s/or :string string? :form list?)) context)]
-   :post [(s/valid? (s/nilable ::spec/completions) %)]}
-
   (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type]}
         (analyze-symbol-and-context symbol context)
         global? (#{:global} type)]
