@@ -11,14 +11,18 @@
   cljs.repl interface for evaluation. Returns a map with :value and :error. Note
   that :value will be a still stringified edn value."
   [session ns code]
-  (let [session @session
-        renv (get session #'cider.piggieback/*cljs-repl-env*)
-        cenv (get session #'cider.piggieback/*cljs-compiler-env*)
-        opts (get session #'cider.piggieback/*cljs-repl-options*)]
+  (let [s @session
+        renv (get s #'cider.piggieback/*cljs-repl-env*)
+        cenv (get s #'cider.piggieback/*cljs-compiler-env*)
+        opts (get s #'cider.piggieback/*cljs-repl-options*)]
     (binding [cljs.env/*compiler* cenv
               cljs.analyzer/*cljs-ns* (if (string? ns) (symbol ns) ns)]
       (try
-        {:value (cljs.repl/eval-cljs renv @cenv (edn/read-string code) opts)}
+        (let [result (cljs.repl/eval-cljs renv @cenv (edn/read-string code) opts)]
+          (swap! session assoc
+                 #'cider.piggieback/*cljs-compiler-env* cenv
+                 #'cider.piggieback/*cljs-repl-env* renv)
+          {:value result})
         (catch Exception e {:error e})))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -30,28 +34,32 @@
 ;; of course breaks when suitable.complete-for-nrepl is renamed(!).
 (def dummy-var)
 (def this-ns (:ns (meta #'dummy-var)))
-(def munged-js-introspection-name (string/replace (name (clojure.core/ns-name this-ns)) #"complete-for-nrepl$" "js_introspection"))
-(def munged-js-introspection-ns (symbol (string/replace munged-js-introspection-name #"_" "-")))
+(def munged-js-introspection-ns (string/replace (name (clojure.core/ns-name this-ns)) #"complete-for-nrepl$" "js-introspection"))
+(def munged-js-introspection-js-name (symbol (string/replace munged-js-introspection-ns #"-" "_")))
 
 (defn ensure-suitable-cljs-is-loaded [session]
-  (let [session @session
-        renv (get session #'cider.piggieback/*cljs-repl-env*)
-        cenv (get session #'cider.piggieback/*cljs-compiler-env*)
-        opts (get session #'cider.piggieback/*cljs-repl-options*)]
+  (let [s @session
+        renv (get s #'cider.piggieback/*cljs-repl-env*)
+        cenv (get s #'cider.piggieback/*cljs-compiler-env*)
+        opts (get s #'cider.piggieback/*cljs-repl-options*)]
     (binding [cljs.env/*compiler* cenv
               cljs.analyzer/*cljs-ns* 'cljs.user]
       (when (not= "true" (:value (cljs.repl/evaluate
                                   renv "<suitable>" 1
                                   ;; see above, would be suitable.js_introspection
-                                  (format "!!goog.getObjectByName('%s')" munged-js-introspection-name))))
+                                  (format "!!goog.getObjectByName('%s')" munged-js-introspection-js-name))))
         ;; see above, would be suitable.js-introspection
-        (cljs.repl/load-namespace renv munged-js-introspection-ns opts)
+        (cljs.repl/load-namespace renv (read-string munged-js-introspection-ns) opts)
         (cljs.repl/evaluate renv "<suitable>" 1 (format "goog.require(\"%s\"); console.log(\"suitable loaded\"); "
-                                                        munged-js-introspection-name))
+                                                        munged-js-introspection-js-name))
         ;; wait as depending on the implemention of goog.require provide by the
         ;; cljs repl might be async. See
         ;; https://github.com/rksm/clj-suitable/issues/1 for more details.
-        (Thread/sleep 100)))))
+        (Thread/sleep 100)
+
+        (swap! session assoc
+               #'cider.piggieback/*cljs-compiler-env* cenv
+               #'cider.piggieback/*cljs-repl-env* renv)))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
