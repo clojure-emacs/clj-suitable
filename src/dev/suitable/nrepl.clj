@@ -20,8 +20,6 @@
 (defonce clj-nrepl-server (atom nil))
 
 
-
-
 (defn start-clj-nrepl-server []
   (let [middlewares (map resolve cider.nrepl/cider-middleware)
         middlewares (if-let [rf (resolve 'refactor-nrepl.middleware/wrap-refactor)]
