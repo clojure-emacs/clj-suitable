@@ -5,27 +5,6 @@
             [clojure.string :as string]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-(defn- cljs-eval
-  "Grabs the necessary compiler and repl envs from the message and uses the plain
-  cljs.repl interface for evaluation. Returns a map with :value and :error. Note
-  that :value will be a still stringified edn value."
-  [session ns code]
-  (let [s @session
-        renv (get s #'cider.piggieback/*cljs-repl-env*)
-        cenv (get s #'cider.piggieback/*cljs-compiler-env*)
-        opts (get s #'cider.piggieback/*cljs-repl-options*)]
-    (binding [cljs.env/*compiler* cenv
-              cljs.analyzer/*cljs-ns* (if (string? ns) (symbol ns) ns)]
-      (try
-        (let [result (cljs.repl/eval-cljs renv @cenv (edn/read-string code) opts)]
-          (swap! session assoc
-                 #'cider.piggieback/*cljs-compiler-env* cenv
-                 #'cider.piggieback/*cljs-repl-env* renv)
-          {:value result})
-        (catch Exception e {:error e})))))
-
-;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;;/2019-08-15 rk: FIXME! When being build as part of cider-nrepl, names of
 ;; cider-nrepl dependencies get munged by mranderson. This also munges cljs
 ;; namespaces but not references to them. So as a hack we grab the name of this
@@ -36,6 +15,32 @@
 (def this-ns (:ns (meta #'dummy-var)))
 (def munged-js-introspection-ns (string/replace (name (clojure.core/ns-name this-ns)) #"complete-for-nrepl$" "js-introspection"))
 (def munged-js-introspection-js-name (symbol (string/replace munged-js-introspection-ns #"-" "_")))
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(defn- cljs-eval
+  "Grabs the necessary compiler and repl envs from the message and uses the plain
+  cljs.repl interface for evaluation. Returns a map with :value and :error. Note
+  that :value will be a still stringified edn value."
+  [session ns code]
+  (let [s @session
+        renv (get s #'cider.piggieback/*cljs-repl-env*)
+        cenv (get s #'cider.piggieback/*cljs-compiler-env*)
+        opts (get s #'cider.piggieback/*cljs-repl-options*)
+        ;; when run with mranderson as an inlined dep, the ns and it's interns
+        ;; aren't recognized correctly by the analyzer, suppress an undefined
+        ;; var warining for `js-properties-of-object`
+        ;; TODO only add when run as inline-dep?? 
+        opts (assoc opts :warnings {:undeclared-var false})]
+    (binding [cljs.env/*compiler* cenv
+              cljs.analyzer/*cljs-ns* (if (string? ns) (symbol ns) ns)]
+      (try
+        (let [result (cljs.repl/eval-cljs renv @cenv (edn/read-string code) opts)]
+          (swap! session assoc
+                 #'cider.piggieback/*cljs-compiler-env* cenv
+                 #'cider.piggieback/*cljs-repl-env* renv)
+          {:value result})
+        (catch Exception e {:error e})))))
 
 (defn ensure-suitable-cljs-is-loaded [session]
   (let [s @session
@@ -49,7 +54,15 @@
                                   ;; see above, would be suitable.js_introspection
                                   (format "!!goog.getObjectByName('%s')" munged-js-introspection-js-name))))
         ;; see above, would be suitable.js-introspection
-        (cljs.repl/load-namespace renv (read-string munged-js-introspection-ns) opts)
+        (try
+          (cljs.repl/load-namespace renv (read-string munged-js-introspection-ns) opts)
+          (catch Exception e
+            ;; when run with mranderson, cljs does not seem to handle the ns
+            ;; annotation correctly and does not recognize the namespace even
+            ;; though it loads correctly.
+            (when-not (and (string/includes? munged-js-introspection-ns "inlined-deps")
+                           (string/includes? (string/lower-case (str e)) "does not provide a namespace"))
+              (throw e))))
         (cljs.repl/evaluate renv "<suitable>" 1 (format "goog.require(\"%s\"); console.log(\"suitable loaded\"); "
                                                         munged-js-introspection-js-name))
         ;; wait as depending on the implemention of goog.require provide by the

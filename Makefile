@@ -1,3 +1,5 @@
+.PHONY: clean test all install depoy nrepl fig-repl
+
 clean:
 	rm -rf target/public/cljs-out suitable.jar .cpcache
 
@@ -31,4 +33,3 @@ fig-repl:
 nrepl:
 	clojure -A:dev -R:test
 
-.PHONY: clean test all install depoy nrepl fig-repl
