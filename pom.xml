@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.rksm</groupId>
   <artifactId>suitable</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <name>suitable</name>
   <description>An addon for Figwheel and Emacs Cider to aid live exploratory development. Queries objects in ClojureScript for their properties to use as part of nREPL completion handlers.</description>
   <url>http://github.com/rksm/clj-suitable</url>

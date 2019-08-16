@@ -175,10 +175,9 @@
         global? (#{:global} type)]
     (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
       (if error
-        (binding [*out* *err*] (println error))
+        (binding [*out* *err*] (println "error in suitable cljs-completions:" error))
         (for [{:keys [name type]} properties
               :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
                     candidate (str prepend-to-candidate maybe-dash name)]
               :when (starts-with? candidate symbol)]
-          (do
-            {:type type :candidate candidate :ns (if global? "js" obj-expr)}))))))
+          {:type type :candidate candidate :ns (if global? "js" obj-expr)})))))
