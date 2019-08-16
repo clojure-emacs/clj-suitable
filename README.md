@@ -38,7 +38,7 @@ Then modify your `deps.edn` so that org.rksm/suitable and it's setup code are
 included:
 
 ```clojure
-:aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "0.2.2"}}
+:aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "0.2.3"}}
                      :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
                                  "-m" "figwheel.main"
                                  "--build" "dev" "--repl"]}}
@@ -57,7 +57,7 @@ Finally start a figwheel repl via `clj -A:suitable`.
 
 First make sure that the [normal leiningen setup](https://figwheel.org/#setting-up-a-build-with-leiningen) works.
 
-Add `[org.rksm/suitable "0.2.2"]` to your dependencies vector.
+Add `[org.rksm/suitable "0.2.3"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
@@ -66,7 +66,7 @@ Then you can start a repl with `lein trampoline run -m suitable.figwheel.main --
 For usage with `cider-jack-in-cljs` add these two lines to your emacs config:
 
 ```lisp
-(cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.2.2")
+(cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.2.3")
 (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "suitable.middleware/wrap-complete")
 ```
 
@@ -77,7 +77,7 @@ That's it, your normal completion (e.g. via company) should pick up the completi
 To load suitable into a custom server you can load it using this monstrosity:
 
 ```shell
-clj -Sdeps '{:deps {cider/cider-nrepl {:mvn/version "0.21.1"} org.rksm/suitable {:mvn/version "0.2.2"} cider/piggieback {:mvn/version"0.4.1"}}}' -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl,suitable.middleware/wrap-complete]"
+clj -Sdeps '{:deps {cider/cider-nrepl {:mvn/version "0.21.1"} org.rksm/suitable {:mvn/version "0.2.3"} cider/piggieback {:mvn/version"0.4.1"}}}' -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl,suitable.middleware/wrap-complete]"
 ```
 
 Or from within Clojure:

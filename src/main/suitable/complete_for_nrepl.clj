@@ -140,6 +140,7 @@
   (let [prev-state (or (get @session #'*object-completion-state*) (empty-state))
         prev-context (:context prev-state)
         context (cond
+                  (nil? context) ""
                   (= context ":same") prev-context
                   (= context "nil") ""
                   :else context)
