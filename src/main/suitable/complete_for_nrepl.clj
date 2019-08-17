@@ -1,7 +1,8 @@
 (ns suitable.complete-for-nrepl
   (:require [clojure.edn :as edn]
             [suitable.js-completions :refer [cljs-completions]]
-            [clojure.string :as string]))
+            [clojure.string :as string])
+  (:import java.io.StringReader))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; 2019-08-15 rk: FIXME! When being build as part of cider-nrepl, names of
@@ -136,7 +137,9 @@
 (defn handle-completion-msg!
   "Tracks the completion state (contexts) and reuses old contexts if necessary.
   State is kept in session."
-  [{:keys [session symbol context ns extra-metadata] :as _msg} cljs-eval-fn]
+  [{:keys [session symbol context ns extra-metadata] :as _msg}
+   cljs-eval-fn
+   ensure-loaded-fn]
   (let [prev-state (or (get @session #'*object-completion-state*) (empty-state))
         prev-context (:context prev-state)
         context (cond
@@ -146,7 +149,9 @@
                   :else context)
         options-map {:context context :ns ns :extra-metadata extra-metadata}]
 
-    (ensure-suitable-cljs-is-loaded session)
+    ;; make sure we can call the object completion api in cljs, i.e. loads
+    ;; suitable cljs code if necessary.
+    (ensure-loaded-fn session)
 
     (when (not= prev-context context)
       (swap! session #(merge % {#'*object-completion-state*
@@ -154,11 +159,43 @@
 
     (cljs-completions cljs-eval-fn symbol options-map)))
 
-(defn complete-for-nrepl
-  "Computes the completions using the cljs environment found in msg."
+(defn- complete-for-default-cljs-env
   [{:keys [session] :as msg}]
   (let [cljs-eval-fn
         (fn [ns code] (let [result (cljs-eval session ns code)]
                         {:error (some->> result :error str)
-                         :value (some->> result :value edn/read-string)}))]
-    (handle-completion-msg! msg cljs-eval-fn)))
+                         :value (some->> result :value edn/read-string)}))
+        ensure-loaded-fn ensure-suitable-cljs-is-loaded]
+    (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
+
+
+(defn- shadow-cljs? [msg]
+  (:shadow.cljs.devtools.server.nrepl-impl/build-id msg))
+
+(defn- complete-for-shadow-cljs
+  "Shadow-cljs handles evals quite differently from normal cljs so we need some
+  special handling here."
+  [{:keys [session] :as msg}]
+  (require 'shadow.cljs.repl)
+  (require 'shadow.cljs.devtools.server.repl-impl)
+  (require 'shadow.cljs.devtools.server.worker)
+  (let [worker (:shadow.cljs.devtools.server.nrepl-impl/worker msg)
+        runtime-id (:runtime-id msg)
+        session-id (-> session meta :id str)
+        build-state ((resolve 'shadow.cljs.devtools.server.repl-impl/worker-build-state) worker)
+        cljs-eval-fn (fn [ns code]
+                       (let [read-result ((resolve 'shadow.cljs.repl/read-one) build-state (StringReader. code) {})
+                             eval-result ((resolve 'shadow.cljs.devtools.server.worker/repl-eval) worker session-id runtime-id read-result)
+                             [value error] (->> eval-result :results last :result ((juxt :value :error)))]
+                         {:error error
+                          :value (some->> value edn/read-string)}))
+        ensure-loaded-fn (fn [_session] (cljs-eval-fn 'cljs.user (str "(require '" munged-js-introspection-ns ")")))]
+    (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
+
+
+(defn complete-for-nrepl
+  "Computes the completions using the cljs environment found in msg."
+  [msg]
+  (if (shadow-cljs? msg)
+    (complete-for-shadow-cljs msg)
+    (complete-for-default-cljs-env msg)))
