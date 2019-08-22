@@ -5,6 +5,8 @@
             [clojure.zip :as zip]
             [suitable.ast :refer [tree-zipper]]))
 
+(def debug? false)
+
 (defn js-properties-of-object
   "Returns the properties of the object we get by evaluating `obj-expr` filtered
   by all those that start with `prefix`."
@@ -50,10 +52,10 @@
   (when-let [form (if (string? context)
                     (try
                       (with-in-str context (read *in* nil nil))
-                      (catch Exception e
-                        (cl-format #?(:clj *err* :cljs true)
-                                   "error while gathering cljs runtime completions: ~S~%" e)
-                        nil))
+                      (catch Exception _e
+                        (when debug?
+                          (binding [*out* *err*]
+                            (cl-format true "[suitable] Error reading context: ~s" context)))))
                     context)]
     (let [prefix (find-prefix form)
           left-sibling (zip/left prefix)
@@ -175,7 +177,9 @@
         global? (#{:global} type)]
     (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
       (if error
-        (binding [*out* *err*] (println "error in suitable cljs-completions:" error))
+        (when debug?
+          (binding [*out* *err*]
+            (println "[suitable] error in suitable cljs-completions:" error)))
         (for [{:keys [name type]} properties
               :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
                     candidate (str prepend-to-candidate maybe-dash name)]
