@@ -71,6 +71,8 @@
                   {:type type
                    :obj-expr maybe-expr}))]
        (cond
+         (nil? prefix) nil
+
          ;; is it a threading macro?
          threaded?
          (with-type :-> (if first?

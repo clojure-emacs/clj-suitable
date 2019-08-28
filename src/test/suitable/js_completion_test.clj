@@ -109,7 +109,11 @@
 
                {:desc "doto (.)"
                 :symbol-and-context    ["js/cons" "(doto (. js/window -console) (__prefix__ \"foo\"))"]
-                :expected {:type :doto :obj-expr "(. js/window -console)"}}]]
+                :expected {:type :doto :obj-expr "(. js/window -console)"}}
+
+               {:desc "no prefix"
+                :symbol-and-context    ["xx" "(foo bar (baz))"]
+                :expected nil}]]
 
     (doseq [{[symbol context] :symbol-and-context :keys [expected desc]} tests]
       (is (= expected (sut/expr-for-parent-obj symbol context)) desc))))
@@ -180,7 +184,7 @@
 
 (comment
 
-  (run-tests)
+  (run-tests 'suitable.js-completion-test)
 
   (with-fake-js-completions cljs-eval-fn
     "js/console" "l" [{:name "log" :hierarchy 1 :type "function"}
