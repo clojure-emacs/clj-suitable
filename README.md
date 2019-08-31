@@ -63,21 +63,24 @@ Then you can start a repl with `lein trampoline run -m suitable.figwheel.main --
 
 ### Emacs CIDER
 
-For usage with `cider-jack-in-cljs` add these two lines to your emacs config:
+Suitable is now a default middleware in CIDER (as of CIDER 0.22.0)! So no extra
+installation steps are required.
 
-```lisp
-(cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.2.6")
-(add-to-list 'cider-jack-in-cljs-nrepl-middlewares "suitable.middleware/wrap-complete")
-```
+<!-- For usage with `cider-jack-in-cljs` add these two lines to your emacs config: -->
 
-That's it, your normal completion (e.g. via company) should pick up the completions provided by suitable.
+<!-- ```lisp -->
+<!-- (cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.2.6") -->
+<!-- (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "suitable.middleware/wrap-complete") -->
+<!-- ``` -->
+
+<!-- That's it, your normal completion (e.g. via company) should pick up the completions provided by suitable. -->
 
 ### Custom nREPL server
 
 To load suitable into a custom server you can load it using this monstrosity:
 
 ```shell
-clj -Sdeps '{:deps {cider/cider-nrepl {:mvn/version "0.21.1"} org.rksm/suitable {:mvn/version "0.2.6"} cider/piggieback {:mvn/version"0.4.1"}}}' -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl,suitable.middleware/wrap-complete]"
+clj -Sdeps '{:deps {cider/cider-nrepl {:mvn/version "0.22.0"} cider/piggieback {:mvn/version"0.4.1"}}}' -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware,cider.piggieback/wrap-cljs-repl]"
 ```
 
 Or from within Clojure:
@@ -86,13 +89,11 @@ Or from within Clojure:
 (ns my-own-nrepl-server
   (:require cider.nrepl
             cider.piggieback
-            nrepl.server
-            suitable.middleware))
+            nrepl.server))
 
 (defn start-cljs-nrepl-server []
 (let [middlewares (conj (map resolve cider.nrepl/cider-middleware)
-                        #'cider.piggieback/wrap-cljs-repl
-                        #'suitable.middleware/wrap-complete)
+                        #'cider.piggieback/wrap-cljs-repl)
       handler (apply nrepl.server/default-handler middlewares)]
   (nrepl.server/start-server :handler handler))
 ```
@@ -103,8 +104,7 @@ suitable uses the same input as the widely used
 [compliment](https://github.com/alexander-yakushev/compliment). This means it
 gets a prefix string and a context form from the tool it is connected to. For
 example you type `(.l| js/console)` with "|" marking where your cursor is. The
-input we get would then be: prefix = `.l` and context = `(__prefix__
-js/console)`.
+input we get would then be: prefix = `.l` and context = `(__prefix__ js/console)`.
 
 suitable recognizes various ways how CLJS can access properties and methods,
 such as `.`, `..`, `doto`, and threading forms. Also direct global access is
