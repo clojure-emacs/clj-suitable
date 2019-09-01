@@ -18,6 +18,8 @@
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+(def debug? false)
+
 (defonce ^{:private true} resolved-vars (atom nil))
 
 (defn- resolve-vars!
@@ -45,6 +47,7 @@
                      (require 'cljs.env)
                      {:cljs-cenv-var (resolve 'cljs.env/*compiler*)
                       :cljs-ns-var (resolve 'cljs.analyzer/*cljs-ns*)
+                      :cljs-repl-setup-fn (resolve 'cljs.repl/setup)
                       :cljs-evaluate-fn (resolve 'cljs.repl/evaluate)
                       :cljs-eval-cljs-fn (resolve 'cljs.repl/eval-cljs)
                       :cljs-load-namespace-fn (resolve 'cljs.repl/load-namespace)})]
@@ -81,7 +84,6 @@
                               `(~sym ((keyword '~sym) ~vars)))))
            ~@body)))))
 
-
 (defn- cljs-eval
   "Grabs the necessary compiler and repl envs from the message and uses the plain
   cljs.repl interface for evaluation. Returns a map with :value and :error. Note
@@ -101,16 +103,40 @@
           {:value result})
         (catch Exception e {:error e})))))
 
+(defn node-env?
+  "Returns true iff RENV is a NodeEnv or more precisely a piggiebacked delegating
+  NodeEnv. Since the renv is wrapped we can't just compare the type but have to
+  do some string munging according to
+  `cider.piggieback/generate-delegating-repl-env`."
+  [renv]
+  (= (some-> 'cljs.repl.node.NodeEnv
+             resolve
+             .getName
+             (string/replace "." "_"))
+     (-> renv
+         class
+         .getName
+         (string/replace #".*Delegating" ""))))
+
 (defn ensure-suitable-cljs-is-loaded [session]
   (let [{:keys [cenv renv opts]} (extract-cljs-state session)]
     (with-cljs-env cenv 'cljs.user
-      [cljs-load-namespace-fn cljs-evaluate-fn]
-      (when (not= "true" (:value (cljs-evaluate-fn
+      [cljs-repl-setup-fn cljs-load-namespace-fn cljs-evaluate-fn]
+
+      (when (node-env? renv)
+        ;; rk 2019-09-02 FIXME
+        ;; Due to this issue:
+        ;; https://github.com/clojure-emacs/cider-nrepl/pull/644#issuecomment-526953982
+        ;; we can't just eval with a node env but have to make sure that it's
+        ;; local buffer is initialized for this thread.
+        (cljs-repl-setup-fn renv opts))
+
+      (when (not= "true" (some-> (cljs-evaluate-fn
                                   renv "<suitable>" 1
                                   ;; see above, would be suitable.js_introspection
-                                  (format "!!goog.getObjectByName('%s')" munged-js-introspection-js-name))))
-        ;; see above, would be suitable.js-introspection
+                                  (format "!!goog.getObjectByName('%s')" munged-js-introspection-js-name)) :value))
         (try
+          ;; see above, would be suitable.js-introspection
           (cljs-load-namespace-fn renv (read-string munged-js-introspection-ns) opts)
           (catch Exception e
             ;; when run with mranderson, cljs does not seem to handle the ns
@@ -119,8 +145,9 @@
             (when-not (and (string/includes? munged-js-introspection-ns "inlined-deps")
                            (string/includes? (string/lower-case (str e)) "does not provide a namespace"))
               (throw e))))
-        (cljs-evaluate-fn renv "<suitable>" 1 (format "goog.require(\"%s\"); console.log(\"suitable loaded\"); "
-                                                        munged-js-introspection-js-name))
+        (cljs-evaluate-fn renv "<suitable>" 1 (format "goog.require(\"%s\");%s"
+                                                      (if debug? " console.log(\"suitable loaded\");" "")
+                                                      munged-js-introspection-js-name))
         ;; wait as depending on the implemention of goog.require provide by the
         ;; cljs repl might be async. See
         ;; https://github.com/rksm/clj-suitable/issues/1 for more details.
@@ -168,7 +195,6 @@
         ensure-loaded-fn ensure-suitable-cljs-is-loaded]
     (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
 
-
 (defn- shadow-cljs? [msg]
   (:shadow.cljs.devtools.server.nrepl-impl/build-id msg))
 
@@ -191,7 +217,6 @@
                           :value (some->> value edn/read-string)}))
         ensure-loaded-fn (fn [_session] (cljs-eval-fn 'cljs.user (str "(require '" munged-js-introspection-ns ")")))]
     (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
-
 
 (defn complete-for-nrepl
   "Computes the completions using the cljs environment found in msg."

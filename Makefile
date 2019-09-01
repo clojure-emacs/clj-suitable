@@ -4,7 +4,7 @@ clean:
 	rm -rf target/public/cljs-out suitable.jar .cpcache
 
 test:
-	clojure  -Atest -d src/test
+	clojure  -A:test -d src/test
 
 suitable.jar: deps.edn src/**/*
 	clojure -A:pack \
@@ -31,5 +31,4 @@ fig-repl:
 	clojure -A:fig-repl
 
 nrepl:
-	clojure -A:dev -R:test
-
+	clojure -A:dev -R:test:nrepl
