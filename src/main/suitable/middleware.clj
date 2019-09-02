@@ -10,48 +10,64 @@
   (if (find-ns 'clojure.tools.nrepl)
     (do (require
          '[clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+         '[nrepl.misc :refer [response-for]]
          '[clojure.tools.nrepl.transport :as transport]))
     (do
       (require
        '[nrepl.middleware :refer [set-descriptor!]]
+       '[nrepl.misc :refer [response-for]]
        '[nrepl.transport :as transport]))))
+
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 (defn- completion-answer
   "Creates an answer message with computed completions. Note that no done state is
   set in the message as we expect the default handler to finish the completion
   response."
-  [{:keys [id session] :as msg} completions]
-  (merge (when id {:id id})
-         (when session {:session (if (instance? clojure.lang.AReference session)
-                                   (-> session meta :id)
-                                   session)})
-         {:completions completions}))
+  ([msg completions]
+   (completion-answer msg completions false))
+  ([{:keys [id session] :as msg} completions done?]
+   (cond-> {:completions completions}
+     id (assoc :id id)
+     session (assoc :session (if (instance? clojure.lang.AReference session)
+                               (-> session meta :id)
+                               session))
+     done? (assoc :status #{"done"}))))
 
 (defn- cljs-dynamic-completion-handler
   "Handles op = \"complete\". Will try to fetch object completions and puts them
   on the wire with transport but also allows the default completion handler to
   act."
-  [next-handler {:keys [id session ns transport op symbol] :as msg}]
+  [standalone? next-handler {:keys [id session ns transport op symbol] :as msg}]
 
-  (when (and
-         ;; completion request?
-         (= op "complete") (not= "" symbol)
-         ;; cljs?
-         (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
-                                             cider.piggieback/*cljs-compiler-env*)))
+  (if (and
+       ;; completion request?
+       (= op "complete") (not= "" symbol)
+       ;; cljs?
+       (some #(get @session (resolve %)) '(piggieback.core/*cljs-compiler-env*
+                                           cider.piggieback/*cljs-compiler-env*)))
 
-    (when-let [completions (complete-for-nrepl msg)]
-      (transport/send transport (completion-answer msg completions))))
+    (let [completions (complete-for-nrepl msg)]
+      ;; in standalone mode we send an answer, even if we have no completions
+      (if standalone?
+        (transport/send transport (completion-answer msg completions true))
 
-  ;; call next-handler in any case - we want the default completions as well
-  (next-handler msg))
+        ;; otherwise we send if we have some completions but leave it to the
+        ;; other middleware to send additional + marking the message as done
+        (do (when completions
+              (transport/send transport (completion-answer msg completions)))
+            (next-handler msg))))
+
+    (next-handler msg)))
 
 (defn wrap-complete [handler]
-  (fn [msg] (cljs-dynamic-completion-handler handler msg)))
+  (fn [msg] (cljs-dynamic-completion-handler false handler msg)))
+
+(defn wrap-complete-standalone [handler]
+  (fn [msg] (cljs-dynamic-completion-handler true handler msg)))
 
 (set-descriptor! #'wrap-complete
-                 {:doc "Middleware providing runtime completion support."
+                 {:doc "Middleware providing runtime completion support - in addition to normal cljs completions."
                   :requires #{"clone"}
                   :expects #{"complete" "eval"}
                   :handles {;; "complete"
@@ -70,3 +86,9 @@
                             ;; "complete-flush-caches"
                             ;; {:doc "Forces the completion backend to repopulate all its caches"}
                             }})
+
+(set-descriptor! #'wrap-complete-standalone
+                 {:doc "Middleware providing runtime completion support."
+                  :requires #{"clone"}
+                  :expects #{"complete" "eval"}
+                  :handles {}})
