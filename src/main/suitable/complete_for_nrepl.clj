@@ -146,8 +146,8 @@
                            (string/includes? (string/lower-case (str e)) "does not provide a namespace"))
               (throw e))))
         (cljs-evaluate-fn renv "<suitable>" 1 (format "goog.require(\"%s\");%s"
-                                                      (if debug? " console.log(\"suitable loaded\");" "")
-                                                      munged-js-introspection-js-name))
+                                                      munged-js-introspection-js-name
+                                                      (if debug? " console.log(\"suitable loaded\");" "")))
         ;; wait as depending on the implemention of goog.require provide by the
         ;; cljs repl might be async. See
         ;; https://github.com/rksm/clj-suitable/issues/1 for more details.
