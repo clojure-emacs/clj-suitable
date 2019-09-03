@@ -174,16 +174,17 @@
   Currently unsupported options that compliment implements
   are :extra-metadata :sort-order and :plain-candidates."
   [cljs-eval-fn symbol {:keys [ns context] :as options-map}]
-  (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type]}
-        (analyze-symbol-and-context symbol context)
-        global? (#{:global} type)]
-    (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
-      (if error
-        (when debug?
-          (binding [*out* *err*]
-            (println "[suitable] error in suitable cljs-completions:" error)))
-        (for [{:keys [name type]} properties
-              :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
-                    candidate (str prepend-to-candidate maybe-dash name)]
-              :when (starts-with? candidate symbol)]
-          {:type type :candidate candidate :ns (if global? "js" obj-expr)})))))
+  (when symbol
+    (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type]}
+          (analyze-symbol-and-context symbol context)
+          global? (#{:global} type)]
+      (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
+        (if error
+          (when debug?
+            (binding [*out* *err*]
+              (println "[suitable] error in suitable cljs-completions:" error)))
+          (for [{:keys [name type]} properties
+                :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
+                      candidate (str prepend-to-candidate maybe-dash name)]
+                :when (starts-with? candidate symbol)]
+            {:type type :candidate candidate :ns (if global? "js" obj-expr)}))))))
