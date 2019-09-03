@@ -174,7 +174,7 @@
   Currently unsupported options that compliment implements
   are :extra-metadata :sort-order and :plain-candidates."
   [cljs-eval-fn symbol {:keys [ns context] :as options-map}]
-  (when symbol
+  (when (and symbol (not= "nil" symbol))
     (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type]}
           (analyze-symbol-and-context symbol context)
           global? (#{:global} type)]
