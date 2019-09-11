@@ -77,16 +77,16 @@
          threaded?
          (with-type :-> (if first?
                           ;; parent is the thread
-                          (-> prefix zip/up zip/lefts str)
+                          (some-> prefix zip/up zip/lefts str)
                           ;; thread on same level
                           (-> prefix zip/lefts str)))
 
          doto?
          (with-type :doto (if first?
                             ;; parent is the thread
-                            (-> prefix zip/up zip/leftmost zip/right zip/node str)
+                            (some-> prefix zip/up zip/leftmost zip/right zip/node str)
                             ;; thread on same level
-                            (-> prefix zip/leftmost zip/right zip/node str)))
+                            (some-> prefix zip/leftmost zip/right zip/node str)))
 
          ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
          ;; expr up to that point. If just the object that is accessed is left of
@@ -100,7 +100,7 @@
                             (str lefts))))
 
          ;; (.. js/window -console (log "foo")) => (.. js/window -console)
-         (and first? (-> prefix zip/up zip/leftmost zip/node str (= "..")))
+         (and first? (some-> prefix zip/up zip/leftmost zip/node str (= "..")))
          (with-type :.. (let [lefts (-> prefix zip/up zip/lefts)]
                           (if (<= (count lefts) 2)
                             (str (last lefts))
