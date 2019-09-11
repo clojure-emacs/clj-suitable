@@ -36,8 +36,7 @@
 ;; expr-for-parent-obj
 
 (deftest expr-for-parent-obj
-  (let [state {:special-namespaces ["js"]}
-        tests [ ;; should not trigger object completion
+  (let [tests [ ;; should not trigger object completion
                {:desc "no object in sight"
                 :symbol-and-context    [".log" "(__prefix__)"]
                 :expected nil}
@@ -113,6 +112,10 @@
 
                {:desc "no prefix"
                 :symbol-and-context    ["xx" "(foo bar (baz))"]
+                :expected nil}
+
+               {:desc "broken form"
+                :symbol-and-context    ["xx" "(foo "]
                 :expected nil}]]
 
     (doseq [{[symbol context] :symbol-and-context :keys [expected desc]} tests]
@@ -180,7 +183,6 @@
            (sut/cljs-completions cljs-eval-fn "ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 (comment
 

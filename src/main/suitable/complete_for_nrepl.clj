@@ -184,7 +184,13 @@
       (swap! session #(merge % {#'*object-completion-state*
                                 (assoc prev-state :context context)})))
 
-    (cljs-completions cljs-eval-fn symbol options-map)))
+    (try
+      (cljs-completions cljs-eval-fn symbol options-map)
+      (catch Exception e
+        (if debug?
+          (do (println "suitable error")
+              (.printStackTrace e))
+          (println (format "suitable error (enable %s/debug for more details): %s" this-ns (.getMessage e))))))))
 
 (defn- complete-for-default-cljs-env
   [{:keys [session] :as msg}]
