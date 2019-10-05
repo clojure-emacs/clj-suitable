@@ -31,27 +31,36 @@ that to work. Plain repls have no completion feature.
 
 #### Tools CLI
 
-First make sure that the [normal Tools CLI
-setup](https://figwheel.org/#setting-up-a-build-with-tools-cli) works.
+First make sure that the [normal Tools CLI setup](https://figwheel.org/#setting-up-a-build-with-tools-cli) works.
 
-Then modify your `deps.edn` so that org.rksm/suitable and it's setup code are
-included:
+Then modify `deps.edn` and `dev.cljs.edn`, you should end up with the files looking like below:
+
+- `deps.edn`
 
 ```clojure
-:aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "0.2.14"}}
-                     :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
-                                 "-m" "figwheel.main"
-                                 "--build" "dev" "--repl"]}}
+{:deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}
+        com.bhauman/rebel-readline-cljs {:mvn/version "RELEASE"}}
+ :paths ["src" "resources" "target"]
+ :aliases {:suitable {:extra-deps {org.rksm/suitable {:mvn/version "RELEASE"}}
+	              :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
+                                  "-m" "figwheel.main"
+                                  "--build" "dev" "--repl"]}}}
 ```
 
-Also add a preload to your `dev.cljs.edn`:
+- `dev.cljs.edn`
 
 ```clojure
-{:main hello-world.core
+{:main example.core
  :preloads [suitable.js-introspection]}
 ```
 
-Finally start a figwheel repl via `clj -A:suitable`.
+- `src/example/core.cljs`
+
+```clojure
+(ns example.core)
+```
+
+You can now start a figwheel repl via `clj -A:suitable` and use TAB to complete.
 
 #### leiningen
 
