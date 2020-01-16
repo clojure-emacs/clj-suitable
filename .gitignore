@@ -2,3 +2,4 @@
 /target/
 /.cpcache/
 /suitable.jar
+.cljs_*_repl/

@@ -1,4 +1,5 @@
-{:deps {org.clojure/clojurescript {:mvn/version "[1.9.908,)"}}
+{:deps {org.clojure/clojurescript {:mvn/version "[1.9.908,)"}
+        compliment {:mvn/version "0.3.9"}}
 
  :paths ["src/main"]
 
@@ -21,15 +22,14 @@
                         :extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}}}
 
            ;; tests
-           :test {:extra-paths ["src/test"]
+           :test {:extra-paths ["src/test" "resources"]
                   :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
                                                           :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}
                                cider/cider-nrepl {:mvn/version "RELEASE"}
                                cider/piggieback {:mvn/version "RELEASE"}}
-                  :main-opts ["-m" "cognitect.test-runner"]}
+                  :main-opts ["-m" "cognitect.test-runner" "-d" "src/test"]}
 
            ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
            :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                                 :sha "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
                   :main-opts ["-m"]}}}
-

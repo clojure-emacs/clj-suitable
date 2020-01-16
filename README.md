@@ -1,4 +1,6 @@
-# suitable - Addon for Figwheel and Emacs CIDER to aid exploratory development in ClojureScript [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
+# suitable - ClojureScript Completion Toolkit
+
+[![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
 This project is a code completion backend for interactive repls and editors that
 use runtime introspection to provide "IntelliSense" support. This can be
@@ -13,6 +15,10 @@ and press TAB. Methods and properties of `js/document` will appear — including
 Currently Emacs (via CIDER) and figwheel.main are supported. If you want support
 for your favorite tool please let me know and I'll look into it (no promises,
 though).
+
+It also provides a [compliment custom
+source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources]
+for ClojureScript so that tooling can depend on it.
 
 ## Demo
 
