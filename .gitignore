@@ -3,3 +3,8 @@
 /.cpcache/
 /suitable.jar
 .cljs_*_repl/
+/.cljs_nashorn_repl/
+/.cljs_node_repl/
+/.rebel_readline_history
+/nashorn_code_cache/
+/out/
