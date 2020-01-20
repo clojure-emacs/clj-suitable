@@ -2,25 +2,50 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
-This project is a code completion backend for interactive repls and editors that
-use runtime introspection to provide "IntelliSense" support. This can be
-extremely useful and productive if you're experimenting around with unknown
-APIs.
+suitable provides static and dynamic code completion for ClojureScript tools.
 
-For example you work with DOM objects but can't remember how to query for child
-elements. Type `(.| js/document)` (with `|` marking the postion of your cursor)
-and press TAB. Methods and properties of `js/document` will appear — including
-`querySelector` and `querySelectorAll`.
+It integrates a) with the CLJS analyzer and using the compilation state for
+"static" symbol completion. This functionality was formerly part of
+[compliment](https://github.com/alexander-yakushev/compliment.
+
+It b) can use a CLJS repl session to query and inspect JavaScript runtime state,
+allowing code completion for JavaScript objects and interfaces.
+
+## TODO: describe static completion / compliment feature
+
+## Dynamic code completion for CLJS repls
+
+The dynamic code completion features allow for exploratory development by
+inspecting the runtime. For example you work with DOM objects but can't remember
+how to query for child elements. Type `(.| js/document)` (with `|` marking the
+postion of your cursor) and press TAB. Methods and properties of `js/document`
+will appear — including `querySelector` and `querySelectorAll`.
 
 Currently Emacs (via CIDER) and figwheel.main are supported. If you want support
 for your favorite tool please let me know and I'll look into it (no promises,
 though).
 
-It also provides a [compliment custom
-source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources]
-for ClojureScript so that tooling can depend on it.
+<!-- It also provides a [compliment custom -->
+<!-- source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources] -->
+<!-- for ClojureScript so that tooling can depend on it. -->
 
-## Demo
+### Dynamic code completion: *CAVEATS*
+
+The dynamic code completion *evaluates* code on completion requests! It does
+this by trying to [enumerate the
+properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptors)
+of JavaScript objects, so in the example above it would fetch all properties of
+the `js/document` object. Given that pretty much everything is possible (e.g.
+through getters), this alone can cause side effects.
+
+Moreover, also chains of methods and properties will be evaluated upon
+completion requests. So for example, asking for completions for the code /
+cursor position `(-> js/some-object (.deleteAllMyFilesAndStartAWar) .|)` will
+evaluate the JavaScript code `some-object.deleteAllMyFilesAndStartAWar()`!
+Please be aware of this behavior when using the dynamic code completion
+features.
+
+## Dynamic completion Demo
 
 The animation shows how various properties and methods of the native DOM can be
 accessed (Tab is used to show completions for the expression at the cursor):
