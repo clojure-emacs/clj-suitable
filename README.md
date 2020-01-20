@@ -6,7 +6,7 @@ suitable provides static and dynamic code completion for ClojureScript tools.
 
 It integrates a) with the CLJS analyzer and using the compilation state for
 "static" symbol completion. This functionality was formerly part of
-[compliment](https://github.com/alexander-yakushev/compliment.
+[compliment](https://github.com/alexander-yakushev/compliment).
 
 It b) can use a CLJS repl session to query and inspect JavaScript runtime state,
 allowing code completion for JavaScript objects and interfaces.
@@ -97,7 +97,7 @@ You can now start a figwheel repl via `clj -A:suitable` and use TAB to complete.
 
 First make sure that the [normal leiningen setup](https://figwheel.org/#setting-up-a-build-with-leiningen) works.
 
-Add `[org.rksm/suitable "0.3.0"]` to your dependencies vector.
+Add `[org.rksm/suitable "0.3.1"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
@@ -109,7 +109,7 @@ installation steps are required.
 <!-- For usage with `cider-jack-in-cljs` add these two lines to your emacs config: -->
 
 <!-- ```lisp -->
-<!-- (cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.3.0") -->
+<!-- (cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.3.1") -->
 <!-- (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "suitable.middleware/wrap-complete") -->
 <!-- ``` -->
 
