@@ -21,10 +21,6 @@ how to query for child elements. Type `(.| js/document)` (with `|` marking the
 postion of your cursor) and press TAB. Methods and properties of `js/document`
 will appear — including `querySelector` and `querySelectorAll`.
 
-Currently Emacs (via CIDER) and figwheel.main are supported. If you want support
-for your favorite tool please let me know and I'll look into it (no promises,
-though).
-
 <!-- It also provides a [compliment custom -->
 <!-- source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources] -->
 <!-- for ClojureScript so that tooling can depend on it. -->
