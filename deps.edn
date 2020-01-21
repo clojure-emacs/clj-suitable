@@ -1,5 +1,5 @@
 {:deps {org.clojure/clojurescript {:mvn/version "[1.9.908,)"}
-        compliment {:mvn/version "0.3.9"}}
+        compliment {:mvn/version "0.3.10"}}
 
  :paths ["src/main"]
 
