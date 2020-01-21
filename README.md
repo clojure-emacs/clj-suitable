@@ -29,7 +29,7 @@ though).
 <!-- source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources] -->
 <!-- for ClojureScript so that tooling can depend on it. -->
 
-### Dynamic code completion: *CAVEATS*
+### Dynamic code completion: *BE AWARE OF THE SIDE EFFECTS*
 
 The dynamic code completion *evaluates* code on completion requests! It does
 this by trying to [enumerate the
@@ -42,8 +42,7 @@ Moreover, also chains of methods and properties will be evaluated upon
 completion requests. So for example, asking for completions for the code /
 cursor position `(-> js/some-object (.deleteAllMyFilesAndStartAWar) .|)` will
 evaluate the JavaScript code `some-object.deleteAllMyFilesAndStartAWar()`!
-Please be aware of this behavior when using the dynamic code completion
-features.
+This only applies to JavaSript interop code, i.e. JavaScript methods and properties. Pure ClojureScript is not inspected or evaluated. Please be aware of this behavior when using the dynamic code completion features.
 
 ## Dynamic completion Demo
 
