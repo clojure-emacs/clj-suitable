@@ -31,8 +31,7 @@ The dynamic code completion *evaluates* code on completion requests! It does
 this by trying to [enumerate the
 properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptors)
 of JavaScript objects, so in the example above it would fetch all properties of
-the `js/document` object. Given that pretty much everything is possible (e.g.
-through getters), this alone can cause side effects.
+the `js/document` object. This might cause side effects: Even just reading property values of an object can run arbitrary code if that object defines getter functions.
 
 Moreover, also chains of methods and properties will be evaluated upon
 completion requests. So for example, asking for completions for the code /
