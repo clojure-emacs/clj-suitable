@@ -132,6 +132,10 @@ Or from within Clojure:
   (nrepl.server/start-server :handler handler))
 ```
 
+### shadow-cljs + cider
+
+Please see [issue #2](https://github.com/rksm/clj-suitable/issues/2#issuecomment-578447046).
+
 ## How does it work?
 
 suitable uses the same input as the widely used
