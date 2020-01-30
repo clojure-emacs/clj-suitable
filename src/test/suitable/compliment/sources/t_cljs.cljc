@@ -296,9 +296,9 @@
 (deftest docstring-generation
   (testing "symbol docstring"
     (is (string? (cljs-sources/doc "map" nil)) "should return the map docstring, defaulting to the cljs.core namespace")
-    (is (string? (cljs-sources/doc "map" "cljs.core")) "should return the map docstring")
-    (is (string? (cljs-sources/doc "my-add" "suitable.test-macros"))))
+    (is (string? (cljs-sources/doc "map" (find-ns 'cljs.core))) "should return the map docstring")
+    (is (string? (cljs-sources/doc "my-add" (find-ns 'suitable.test-macros)))))
 
   (testing "namespace docstring"
-    (is (= "\n  A test macro namespace\n" (cljs-sources/doc "suitable.test-macros" nil)))
-    (is (= "\n  A test namespace\n" (cljs-sources/doc "suitable.test-ns" nil)))))
+    (is (= "-------------------------\n\n  A test macro namespace\n" (cljs-sources/doc "suitable.test-macros" nil)))
+    (is (= "-------------------------\n\n  A test namespace\n" (cljs-sources/doc "suitable.test-ns" nil)))))

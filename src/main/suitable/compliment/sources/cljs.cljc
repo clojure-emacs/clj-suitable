@@ -3,9 +3,9 @@
   (:refer-clojure :exclude [meta])
   (:require [clojure.set :as set]
             [compliment.sources :refer [defsource]]
-            [compliment.sources.ns-mappings :as vars]
             [compliment.utils :as utils :refer [*extra-metadata*]]
-            [suitable.compliment.sources.cljs.analysis :as ana]))
+            [suitable.compliment.sources.cljs.analysis :as ana])
+  (:import java.io.StringWriter))
 
 (defn unquote-first
   "Handles some weird double-quoting in the analyzer"
@@ -295,17 +295,74 @@
          (distinct-candidates)
          (filter #(candidate-match? % prefix)))))
 
+(defn generate-docstring
+  "Generates a docstring from a given var metadata.
+
+  Copied from `cljs.repl` with some minor modifications."
+  [{n :ns nm :name :as m}]
+  (binding [*out* (StringWriter.)]
+    (println "-------------------------")
+    (println (or (:spec m) (str (when-let [ns (:ns m)] (str ns "/")) (:name m))))
+    (when (:protocol m)
+      (println "Protocol"))
+    (cond
+      (:forms m) (doseq [f (:forms m)]
+                   (println "  " f))
+      (:arglists m) (let [arglists (:arglists m)]
+                      (if (or (:macro m)
+                              (:repl-special-function m))
+                        (prn arglists)
+                        (prn
+                         (if (= 'quote (first arglists))
+                           (second arglists)
+                           arglists)))))
+    (if (:special-form m)
+      (do
+        (println "Special Form")
+        (println " " (:doc m))
+        (if (contains? m :url)
+          (when (:url m)
+            (println (str "\n  Please see http://clojure.org/" (:url m))))
+          (println (str "\n  Please see http://clojure.org/special_forms#"
+                        (:name m)))))
+      (do
+        (when (:macro m)
+          (println "Macro"))
+        (when (:spec m)
+          (println "Spec"))
+        (when (:repl-special-function m)
+          (println "REPL Special Function"))
+        (println " " (:doc m))
+        (when (:protocol m)
+          (doseq [[name {:keys [doc arglists]}] (:methods m)]
+            (println)
+            (println " " name)
+            (println " " arglists)
+            (when doc
+              (println " " doc))))
+        ;; Specs are handled separately in cider-nrepl
+        ;;
+        ;; (when n
+        ;;   (when-let [fnspec (spec/get-spec (symbol (str (ns-name n)) (name nm)))]
+        ;;     (print "Spec")
+        ;;     (doseq [role [:args :ret :fn]]
+        ;;       (when-let [spec (get fnspec role)]
+        ;;         (print (str "\n " (name role) ":") (spec/describe spec))))))
+        ))
+    (str *out*)))
+
 (defn doc
-  [s ns-str]
-  (let [ns-str (or ns-str "cljs.core")
-        qualified-sym (symbol ns-str s)]
-    (some->
-     (cond
-       (plain-symbol? s) (or (ana/qualified-symbol-meta *compiler-env* qualified-sym)
-                             (ana/macro-meta *compiler-env* qualified-sym))
-       (nscl-symbol? s) (-> s symbol ana/ns-meta)
-       :else nil)
-     (vars/generate-docstring))))
+  [s ns]
+  (some->
+   (cond
+     (plain-symbol? s) (let [ns-sym (or (some-> ns ns-name) 'cljs.core)
+                             qualified-sym (symbol (str ns-sym) s)]
+                         (or (ana/qualified-symbol-meta *compiler-env* qualified-sym)
+                             (ana/macro-meta *compiler-env* qualified-sym)))
+     (nscl-symbol? s) (-> s symbol ana/ns-meta)
+     :else nil)
+   (not-empty)
+   (generate-docstring)))
 
 (defsource ::cljs-source
   :candidates #'candidates

@@ -220,10 +220,10 @@
 (defn sanitize-ns
   "Add :ns from :name if missing."
   [m]
-  (-> m
-      (assoc :ns (or (:ns m) (:name m)))
-      (update :ns namespace-sym)
-      (update :name name-sym)))
+  (cond-> m
+    (or (:name m) (:ns m)) (-> (assoc :ns (or (:ns m) (:name m)))
+                               (update :ns namespace-sym)
+                               (update :name name-sym))))
 
 (defn ns-obj?
   "Return true if n is a namespace object"
