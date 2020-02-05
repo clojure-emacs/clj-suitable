@@ -1,5 +1,8 @@
 .PHONY: clean test all install deploy nrepl fig-repl
 
+CLJ_FILES := $(shell find src -iname *.cljs -o -iname *.cljc  -o -iname *.clj)
+SRC_FILES := ${CLJ_FILES} deps.edn fig.cljs.edn Makefile pom.xml
+
 clean:
 	@-rm -rf target/public/cljs-out \
 		suitable.jar \
@@ -11,10 +14,10 @@ clean:
 		nashorn_code_cache \
 		.rebel_readline_history
 
-test:
+test: ${SRC_FILES}
 	clojure  -A:test -d src/test
 
-suitable.jar: deps.edn src/**/*
+suitable.jar: ${SRC_FILES}
 	clojure -A:pack \
 		mach.pack.alpha.skinny \
 		--no-libs \
