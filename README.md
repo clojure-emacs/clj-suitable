@@ -91,7 +91,7 @@ You can now start a figwheel repl via `clj -A:suitable` and use TAB to complete.
 
 First make sure that the [normal leiningen setup](https://figwheel.org/#setting-up-a-build-with-leiningen) works.
 
-Add `[org.rksm/suitable "0.3.2"]` to your dependencies vector.
+Add `[org.rksm/suitable "0.3.3"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
@@ -103,7 +103,7 @@ installation steps are required.
 <!-- For usage with `cider-jack-in-cljs` add these two lines to your emacs config: -->
 
 <!-- ```lisp -->
-<!-- (cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.3.2") -->
+<!-- (cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.3.3") -->
 <!-- (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "suitable.middleware/wrap-complete") -->
 <!-- ``` -->
 
