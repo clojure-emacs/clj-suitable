@@ -1,4 +1,4 @@
-.PHONY: clean test all install depoy nrepl fig-repl
+.PHONY: clean test all install deploy nrepl fig-repl
 
 clean:
 	@-rm -rf target/public/cljs-out \
