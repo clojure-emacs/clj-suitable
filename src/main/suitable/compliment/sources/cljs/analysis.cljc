@@ -261,9 +261,9 @@
 
 (defn macro-meta
   [env qualified-sym]
-  #?(:clj (var-meta (find-var qualified-sym))
+  #?(:clj (some-> (find-var qualified-sym) var-meta)
      :cljs (let [referred-ns (symbol (namespace qualified-sym))]
-             (-> env
-                 (ns-interns-from-env (add-ns-macros referred-ns))
-                 (get refer)
-                 var-meta))))
+             (some-> env
+                     (ns-interns-from-env (add-ns-macros referred-ns))
+                     (get refer)
+                     var-meta))))
