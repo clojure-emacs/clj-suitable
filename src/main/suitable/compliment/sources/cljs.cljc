@@ -353,16 +353,29 @@
 
 (defn doc
   [s ns]
-  (some->
-   (cond
-     (plain-symbol? s) (let [ns-sym (or (some-> ns ns-name) 'cljs.core)
-                             qualified-sym (symbol (str ns-sym) s)]
-                         (or (ana/qualified-symbol-meta *compiler-env* qualified-sym)
-                             (ana/macro-meta *compiler-env* qualified-sym)))
-     (nscl-symbol? s) (-> s symbol ana/ns-meta)
-     :else nil)
-   (not-empty)
-   (generate-docstring)))
+  (let [ns-sym (some-> ns ns-name)]
+    (some->
+     (cond
+       ;; This is needed because compliment defaults to 'user in the absence of
+       ;; a ns. Additionally, in order to preserve the Clojure's behavior we
+       ;; try against cljs.core if nothing is found for cljs.user
+       (or (= ns-sym 'user) (= ns-sym 'cljs.user))
+       (or (ana/qualified-symbol-meta *compiler-env* (symbol "cljs.user" s))
+           (ana/macro-meta *compiler-env* (symbol "cljs.user" s))
+           (ana/qualified-symbol-meta *compiler-env* (symbol "cljs.core" s))
+           (ana/macro-meta *compiler-env* (symbol "cljs.core" s)))
+
+       (plain-symbol? s) (let [ns-sym (cond
+                                        (nil? ns) 'cljs.core
+                                        (= ns 'user) 'cljs.user
+                                        :else (ns-name ns))
+                               qualified-sym (symbol (str ns-sym) s)]
+                           (or (ana/qualified-symbol-meta *compiler-env* qualified-sym)
+                               (ana/macro-meta *compiler-env* qualified-sym)))
+       (nscl-symbol? s) (-> s symbol ana/ns-meta)
+       :else nil)
+     (not-empty)
+     (generate-docstring))))
 
 (defsource ::cljs-source
   :candidates #'candidates
