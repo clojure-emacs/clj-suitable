@@ -20,7 +20,7 @@ This approach was pioneered by `cljs-tooling` and the completion logic was subse
 Why here? Because it's very convenient from the user perspective to have a single library providing both types of completion.
 
 This type of completion provides a [compliment custom
-source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources]
+source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources)
 for ClojureScript, so it's easy to plug with the most popular completion framework out there.
 
 ``` clojure
