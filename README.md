@@ -5,10 +5,10 @@
 suitable provides static and dynamic code completion for ClojureScript tools.
 
 It integrates a) with the CLJS analyzer and using the compilation state for
-"static" symbol completion. This functionality was formerly part of
-[compliment](https://github.com/alexander-yakushev/compliment).
+"static" symbol completion. This functionality was briefly part of
+[compliment](https://github.com/alexander-yakushev/compliment), and before this - [Orchard](https://github.com/clojure-emacs/orchard) and [cljs-tooling](https://github.com/clojure-emacs/cljs-tooling).
 
-It b) can use a CLJS repl session to query and inspect JavaScript runtime state,
+It b) can use a CLJS REPL session to query and inspect JavaScript runtime state,
 allowing code completion for JavaScript objects and interfaces.
 
 ## TODO: describe static completion / compliment feature
@@ -97,17 +97,20 @@ Then you can start a repl with `lein trampoline run -m suitable.figwheel.main --
 
 ### Emacs CIDER
 
-Suitable is now a default middleware in CIDER (as of CIDER 0.22.0)! So no extra
+Suitable is used by CIDER's code completion middleware (as of CIDER 0.22.0), so no extra
 installation steps are required.
 
-<!-- For usage with `cider-jack-in-cljs` add these two lines to your emacs config: -->
+CIDER will always use the static code completion provided by suitable, regardless of the ClojureScript runtime,
+but the dynamic completion is **not** currently available with `shadow-cljs`. (See [this ticket](https://github.com/clojure-emacs/clj-suitable/issues/15) for
+more details)
 
-<!-- ```lisp -->
-<!-- (cider-add-to-alist 'cider-jack-in-cljs-dependencies "org.rksm/suitable" "0.3.5") -->
-<!-- (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "suitable.middleware/wrap-complete") -->
-<!-- ``` -->
+In case you run into any issues with suitable's dynamic completion in CIDER you can disable it like this:
 
-<!-- That's it, your normal completion (e.g. via company) should pick up the completions provided by suitable. -->
+``` emacs-lisp
+(setq cider-enhanced-cljs-completion-p nil)
+```
+
+You'll still be using suitable this way, but only its static completion mechanism.
 
 ### Custom nREPL server
 
