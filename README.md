@@ -50,9 +50,7 @@ how to query for child elements. Type `(.| js/document)` (with `|` marking the
 postion of your cursor) and press TAB. Methods and properties of `js/document`
 will appear — including `querySelector` and `querySelectorAll`.
 
-### Dynamic code completion
-
-*WARNING: BE AWARE OF THE SIDE EFFECTS*
+### Beware the Side-Effects
 
 The dynamic code completion *evaluates* code on completion requests! It does
 this by trying to [enumerate the
