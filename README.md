@@ -2,16 +2,45 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
-suitable provides static and dynamic code completion for ClojureScript tools.
+`suitable` provides static and dynamic code completion for ClojureScript tools.
 
-It integrates a) with the CLJS analyzer and using the compilation state for
+It provides two complementary completion sources:
+
+- It integrates with the CLJS analyzer and using the compilation state for
 "static" symbol completion. This functionality was briefly part of
 [compliment](https://github.com/alexander-yakushev/compliment), and before this - [Orchard](https://github.com/clojure-emacs/orchard) and [cljs-tooling](https://github.com/clojure-emacs/cljs-tooling).
-
-It b) can use a CLJS REPL session to query and inspect JavaScript runtime state,
+- It can use a CLJS REPL session to query and inspect JavaScript runtime state,
 allowing code completion for JavaScript objects and interfaces.
 
-## TODO: describe static completion / compliment feature
+## Static code completion
+
+The static code completion is based on analysis of the ClojureScript compiler state.
+This approach was pioneered by `cljs-tooling` and the completion logic was subsequently moved to `orchard`, `compliment` and finally here.
+
+Why here? Because it's very convenient from the user perspective to have a single library providing both types of completion.
+
+This type of completion provides a [compliment custom
+source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources]
+for ClojureScript, so it's easy to plug with the most popular completion framework out there.
+
+``` clojure
+(ns suitable.demo
+  (:require
+   [compliment.core :as complete]
+   [suitable.compliment.sources.cljs :as suitable-sources]))
+
+(def cljs-sources
+  "A list of ClojureScript completion sources for compliment."
+  [::suitable-sources/cljs-source])
+
+;; you can obtain the ClojureScript environment in many different ways
+;; we'll leave the details to you
+(binding [suitable-sources/*compiler-env* cljs-env]
+  (complete/completions prefix (merge completion-opts {:sources cljs-sources})))
+```
+
+Note that you'll need to establish a binding to `suitable-sources/*compiler-env*`
+for the completion to work.
 
 ## Dynamic code completion for CLJS repls
 
@@ -20,10 +49,6 @@ inspecting the runtime. For example you work with DOM objects but can't remember
 how to query for child elements. Type `(.| js/document)` (with `|` marking the
 postion of your cursor) and press TAB. Methods and properties of `js/document`
 will appear — including `querySelector` and `querySelectorAll`.
-
-<!-- It also provides a [compliment custom -->
-<!-- source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources] -->
-<!-- for ClojureScript so that tooling can depend on it. -->
 
 ### Dynamic code completion: *BE AWARE OF THE SIDE EFFECTS*
 
