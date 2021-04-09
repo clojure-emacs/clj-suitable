@@ -64,7 +64,7 @@ cursor position `(-> js/some-object (.deleteAllMyFilesAndStartAWar) .|)` will
 evaluate the JavaScript code `some-object.deleteAllMyFilesAndStartAWar()`!
 This only applies to JavaSript interop code, i.e. JavaScript methods and properties. Pure ClojureScript is not inspected or evaluated. Please be aware of this behavior when using the dynamic code completion features.
 
-## Dynamic completion Demo
+### Dynamic completion Demo
 
 The animation shows how various properties and methods of the native DOM can be
 accessed (Tab is used to show completions for the expression at the cursor):
