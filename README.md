@@ -135,6 +135,8 @@ Or from within Clojure:
   (nrepl.server/start-server :handler handler))
 ```
 
+**Note:** Make sure to use the latest version of `cider-nrepl` and `piggieback`.
+
 ### shadow-cljs + cider
 
 Please see [issue #2](https://github.com/rksm/clj-suitable/issues/2#issuecomment-578447046).
