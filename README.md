@@ -137,6 +137,12 @@ In case you run into any issues with suitable's dynamic completion in CIDER you 
 
 You'll still be using suitable this way, but only its static completion mechanism.
 
+### VS Code Calva
+
+Suitable is always-on, just as with CIDER.
+
+**Re: Enhanced/dynamic completions**: The `calva.enableJSCompletions` setting controls this, and it is enabled by default. (For the same reasons as with CIDER, it is currently disabled when using `shadow-cljs`.)
+
 ### Custom nREPL server
 
 To load suitable into a custom server you can load it using this monstrosity:
