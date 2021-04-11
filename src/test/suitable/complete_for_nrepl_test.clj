@@ -43,8 +43,6 @@
   (.close *server*))
 
 (comment
-
-  (start (cljs.repl.nashorn/repl-env :debug false))
   (start (cljs.repl.node/repl-env))
   (stop)
   )
@@ -58,16 +56,6 @@
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-(deftest sanity-test-nashorn
-  (require 'cljs.repl.nashorn)
-  (with-repl-env (cljs.repl.nashorn/repl-env :debug false)
-    (testing "cljs repl is active"
-      (let [response (message {:op :eval
-                               :code (nrepl/code (js/Object.))})]
-        (is (= "cljs.user" (:ns response)))
-        (is (= ["#js {}"] (:value response)))
-        (is (= #{"done"} (:status response)))))))
-
 (deftest sanity-test-node
   (require 'cljs.repl.node)
   (with-repl-env (cljs.repl.node/repl-env)
@@ -75,11 +63,12 @@
       (let [response (message {:op :eval
                                :code (nrepl/code (js/Object.))})]
         (is (= "cljs.user" (:ns response)))
-        (is (= ["#js {}"] (:value response)))
+        (is (= ["#js{}"] (:value response)))
         (is (= #{"done"} (:status response)))))))
 
-(deftest suitable-nashorn
-  (with-repl-env (cljs.repl.nashorn/repl-env :debug false)
+(deftest suitable-node
+  (require 'cljs.repl.node)
+  (with-repl-env (cljs.repl.node/repl-env)
     (testing "js global completion"
       (let [response (message {:op "complete"
                                :ns "cljs.user"
@@ -98,17 +87,6 @@
                                  :context ":same"})
               candidates (:completions response)]
           (is (= [{:ns "js/Object", :candidate ".keys" :type "function"}] candidates))))))
-
-(deftest suitable-node
-  (require 'cljs.repl.node)
-  (with-repl-env (cljs.repl.node/repl-env)
-    (testing "js global completion"
-      (let [response (message {:op "complete"
-                               :ns "cljs.user"
-                               :symbol "js/Ob"})
-            candidates (:completions response)]
-        (is (= [{:candidate "js/Object", :ns "js", :type "function"}] candidates))))))
-
 
 (comment
   (run-tests))
