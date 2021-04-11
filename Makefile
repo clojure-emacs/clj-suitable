@@ -9,9 +9,7 @@ clean:
 		.cpcache \
 		target \
 		out \
-		.cljs_nashorn_repl \
 		.cljs_node_repl \
-		nashorn_code_cache \
 		.rebel_readline_history
 
 test: ${SRC_FILES}

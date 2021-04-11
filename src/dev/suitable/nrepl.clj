@@ -13,7 +13,7 @@
 ;; a la https://github.com/nrepl/piggieback/issues/91
 ;; 1. start nrepl server with piggieback
 ;; 2. get session
-;; 3. send cljs start form (e.g. nashorn or figwheel)
+;; 3. send cljs start form (e.g. figwheel)
 ;; 4. ...profit!
 
 ;; 1. start nrepl server with piggieback

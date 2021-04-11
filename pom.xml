@@ -25,7 +25,12 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>[1.9.908,)</version>
+      <version>1.10.844</version>
+    </dependency>
+    <dependency>
+      <groupId>compliment</groupId>
+      <artifactId>compliment</artifactId>
+      <version>0.3.10</version>
     </dependency>
   </dependencies>
 
