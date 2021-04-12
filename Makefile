@@ -40,4 +40,4 @@ fig-repl:
 	clojure -A:fig-repl
 
 nrepl:
-	clojure -A:dev -R:test:nrepl
+	clojure -A:dev:test:nrepl

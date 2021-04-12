@@ -10,3 +10,4 @@
 /out/
 /.lsp/sqlite*.db
 /.calva/output-window/*.calva-repl
+/.shadow-cljs
