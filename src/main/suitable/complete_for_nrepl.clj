@@ -207,21 +207,14 @@
 (defn- complete-for-shadow-cljs
   "Shadow-cljs handles evals quite differently from normal cljs so we need some
   special handling here."
-  [{:keys [session] :as msg}]
-  (require 'shadow.cljs.repl)
-  (require 'shadow.cljs.devtools.server.repl-impl)
-  (require 'shadow.cljs.devtools.server.worker)
-  (let [worker (:shadow.cljs.devtools.server.nrepl-impl/worker msg)
-        runtime-id (:runtime-id msg)
-        session-id (-> session meta :id str)
-        build-state ((resolve 'shadow.cljs.devtools.server.repl-impl/worker-build-state) worker)
-        cljs-eval-fn (fn [ns code]
-                       (let [read-result ((resolve 'shadow.cljs.repl/read-one) build-state (StringReader. code) {})
-                             eval-result ((resolve 'shadow.cljs.devtools.server.worker/repl-eval) worker session-id runtime-id read-result)
-                             [value error] (->> eval-result :results last :result ((juxt :value :error)))]
-                         {:error error
-                          :value (some->> value edn/read-string)}))
-        ensure-loaded-fn (fn [_session] (cljs-eval-fn 'cljs.user (str "(require '" munged-js-introspection-ns ")")))]
+  [msg]
+  (let [build-id (-> msg :shadow.cljs.devtools.server.nrepl-impl/build-id)
+        cljs-eval-fn
+        (fn [ns code]
+          (let [result ((resolve 'shadow.cljs.devtools.api/cljs-eval) build-id code {:ns (symbol ns)})]
+            {:error (some->> result :err str)
+             :value (some->> result :results first edn/read-string)}))
+        ensure-loaded-fn (fn [_] nil)]
     (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
 
 (defn complete-for-nrepl
