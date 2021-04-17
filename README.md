@@ -95,7 +95,7 @@ You can now start a figwheel repl via `clj -M:suitable` and use TAB to complete.
 
 First make sure that the [normal leiningen setup](https://figwheel.org/#setting-up-a-build-with-leiningen) works.
 
-Add `[org.rksm/suitable "0.3.5"]` to your dependencies vector.
+Add `[org.rksm/suitable "0.4.0"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
