@@ -52,10 +52,11 @@
   (when-let [form (if (string? context)
                     (try
                       (with-in-str context (read *in* nil nil))
-                      (catch Exception _e
-                        (when debug?
-                          (binding [*out* *err*]
-                            (cl-format true "[suitable] Error reading context: ~s" context)))))
+                      #?(:clj (catch Exception _e
+                               (when debug?
+                                 (binding [*out* *err*]
+                                   (cl-format true "[suitable] Error reading context: ~s" context)))))
+                      #?(:cljs (catch js/Error _e)))
                     context)]
     (let [prefix (find-prefix form)
           left-sibling (zip/left prefix)

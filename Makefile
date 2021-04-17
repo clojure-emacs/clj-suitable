@@ -36,8 +36,14 @@ deploy: all
 		-Durl=https://clojars.org/repo \
 		-DrepositoryId=clojars
 
+# starts a figwheel repl with suitable enabled
 fig-repl:
-	clojure -A:fig-repl
+	clojure -M:fig-repl
 
-nrepl:
-	clojure -A:dev:test:nrepl
+# useful for development, see comment in src/dev/suitable/nrepl_figwheel.clj
+nrepl-figwheel:
+	clojure -M:test:dev-figwheel
+
+# useful for development, see comment in src/dev/suitable/nrepl_.clj
+nrepl-shadow:
+	clojure -M:test:dev-shadow
