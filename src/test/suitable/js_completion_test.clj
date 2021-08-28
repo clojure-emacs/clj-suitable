@@ -174,7 +174,7 @@
            (sut/cljs-completions cljs-eval-fn "ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))))
 
 
-(deftest dotdot-completion-chained+nested
+(deftest dotdot-completion-chained+nested-2
   (let [cljs-eval-fn (fake-cljs-eval-fn "(.. js/foo zork)" "ba" [{:name "bar" :hierarchy 1 :type "var"}
                                                         {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "(.. js/foo zork)")]

@@ -1,4 +1,4 @@
-(ns dev.suitable.scratch
+(ns suitable.scratch
   (:require [clojure.zip :as zip]
             [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as st]))

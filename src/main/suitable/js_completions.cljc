@@ -25,8 +25,9 @@
        (cljs-eval-fn ns code))
      (catch #?(:clj Exception :cljs js/Error) e {:error e}))))
 
-(defn find-prefix [form]
+(defn find-prefix
   "Tree search for the symbol '__prefix. Returns a zipper."
+  [form]
   (loop [node (tree-zipper form)]
     (if (= '__prefix__ (zip/node node))
       node
@@ -131,7 +132,6 @@
           ;; or "(this-as this this)" for symbol = "js/window"
           obj-expr (cl-format nil "(this-as this ~[this~:;(.. this ~{-~A~^ ~})~])"
                               (count obj-expr-parts) obj-expr-parts)]
-      obj-expr-parts
       {:prefix prefix
        :prepend-to-candidate (str "js/" dotted-obj-expr)
        :vars-have-dashes? false

@@ -1,5 +1,7 @@
 (ns suitable.utils
-  (:require cljs.env ))
+  (:require
+   [cljs.env]
+   [cljs.repl]))
 
 (defn wrapped-cljs-repl-eval
   "cljs-eval-fn for `suitable.cljs-completions` that can be used when a

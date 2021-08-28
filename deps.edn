@@ -38,4 +38,10 @@
            ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
            :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                                 :sha "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
-                  :main-opts ["-m"]}}}
+                  :main-opts ["-m"]}
+
+           ;; clojure -M:dev-figwheel:fig-repl:dev-shadow:test:eastwood
+           :eastwood
+           {:main-opts ["-m" "eastwood.lint" {:config-files ["eastwood.clj"]}]
+            :extra-deps {org.clojure/tools.nrepl {:mvn/version "0.2.13"}
+                         jonase/eastwood {:mvn/version "0.9.9"}}}}}

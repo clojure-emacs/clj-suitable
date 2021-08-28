@@ -110,7 +110,7 @@
   `cider.piggieback/generate-delegating-repl-env`."
   [renv]
   (= (some-> 'cljs.repl.node.NodeEnv
-             resolve
+             ^Class (resolve)
              .getName
              (string/replace "." "_"))
      (-> renv
