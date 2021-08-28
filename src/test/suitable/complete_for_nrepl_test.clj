@@ -9,8 +9,8 @@
 (def ^:dynamic *handler* cider-nrepl-handler)
 (def ^:dynamic *session* nil)
 
-(def ^:dynamic *server* nil)
-(def ^:dynamic *transport* nil)
+(def ^:dynamic ^nrepl.server.Server *server* nil)
+(def ^:dynamic ^nrepl.transport.FnTransport *transport* nil)
 
 (defn message
   ([msg] (message msg true))
@@ -20,14 +20,20 @@
        (nrepl/combine-responses responses)
        responses))))
 
+(def handler nil)
+(def server nil)
+(def transport nil)
+(def client nil)
+(def session nil)
+
 (defmacro start [renv-form]
   `(do
-     (def handler (default-handler #'piggieback/wrap-cljs-repl #'wrap-complete-standalone))
-     (def server    (start-server :handler handler))
-     (def transport (nrepl/connect :port (:port server)))
-     (def client  (nrepl/client transport 3000))
-     (def session (nrepl/client-session client))
-     (alter-var-root #'*server*    (constantly server))
+     (alter-var-root #'handler (constantly (default-handler #'piggieback/wrap-cljs-repl #'wrap-complete-standalone)))
+     (alter-var-root #'server (constantly (start-server :handler handler)))
+     (alter-var-root #'transport (constantly (nrepl/connect :port (:port server))))
+     (alter-var-root #'client (constantly (nrepl/client transport 3000)))
+     (alter-var-root #'session (constantly (nrepl/client-session client)))
+     (alter-var-root #'*server* (constantly server))
      (alter-var-root #'*transport* (constantly transport))
      (alter-var-root #'*session* (constantly session))
      (dorun (message
