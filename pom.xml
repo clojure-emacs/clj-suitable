@@ -7,25 +7,27 @@
   <name>suitable</name>
   <description>An addon for Figwheel and Emacs Cider to aid live exploratory development. Queries objects in ClojureScript for their properties to use as part of nREPL completion handlers.</description>
   <url>http://github.com/rksm/clj-suitable</url>
-
   <licenses>
     <license>
       <name>MIT License</name>
       <url>http://opensource.org/licenses/MIT</url>
     </license>
   </licenses>
-
   <developers>
     <developer>
       <name>Robert Krahn</name>
     </developer>
   </developers>
-
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
+      <version>1.10.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>1.10.844</version>
+      <version>1.10.879</version>
     </dependency>
     <dependency>
       <groupId>compliment</groupId>
@@ -33,7 +35,6 @@
       <version>0.3.10</version>
     </dependency>
   </dependencies>
-
   <build>
     <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
@@ -41,22 +42,15 @@
     <outputDirectory>target/classes</outputDirectory>
     <plugins/>
   </build>
-
   <scm>
     <url>https://github.com/rksm/clj-suitable</url>
     <connection>scm:git:git://github.com/rksm/clj-suitable.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rksm/clj-suitable.git</developerConnection>
   </scm>
-
   <repositories>
     <repository>
       <id>clojars</id>
       <url>https://repo.clojars.org/</url>
     </repository>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
   </repositories>
-
 </project>

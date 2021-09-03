@@ -1,38 +1,39 @@
-{:deps {org.clojure/clojurescript {:mvn/version "[1.9.908,)"}
+{:deps {org.clojure/clojurescript {:mvn/version "1.10.879"}
+        org.clojure/clojure {:mvn/version "1.10.3" :scope "provided"}
         compliment/compliment {:mvn/version "0.3.10"}}
 
  :paths ["src/main"]
 
  :aliases {;; for starting nrepl clj & cljs servers for live development
            :dev-figwheel {:extra-paths ["src/dev" "resources" "target"]
-                          :extra-deps {cider/piggieback {:mvn/version "RELEASE"}
-                                       cider/cider-nrepl {:mvn/version "RELEASE"}
-                                       com.bhauman/figwheel-main {:mvn/version "RELEASE"}}
+                          :extra-deps {cider/piggieback {:mvn/version "0.5.2"}
+                                       cider/cider-nrepl {:mvn/version "0.26.0"}
+                                       com.bhauman/figwheel-main {:mvn/version "0.2.14"}}
                           :main-opts ["-m" "suitable.nrepl-figwheel"]}
 
            :dev-shadow {:extra-paths ["src/dev" "resources" "target"]
-                        :extra-deps {cider/piggieback {:mvn/version "RELEASE"}
-                                     cider/cider-nrepl {:mvn/version "RELEASE"}
-                                     thheller/shadow-cljs {:mvn/version "RELEASE"}}
+                        :extra-deps {cider/piggieback {:mvn/version "0.5.2"}
+                                     cider/cider-nrepl {:mvn/version "0.26.0"}
+                                     thheller/shadow-cljs {:mvn/version "2.15.8"}}
                         :main-opts ["-m" "suitable.nrepl-shadow"]}
 
            :fig-repl {:extra-paths ["resources" "target" "src/dev" "src/test"]
                       :main-opts ["-e" "(require,'suitable.hijack-rebel-readline-complete)"
                                   "-m" "figwheel.main" "--build" "fig" "--repl"]
-                      :extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}
-                                   com.bhauman/rebel-readline-cljs {:mvn/version "RELEASE"}}}
+                      :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.14"}
+                                   com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}}
 
            ;; build the cljs dev stuff, optional
            :build-cljs {:extra-paths ["resources" "target" "src/dev" "src/test"]
                         :main-opts ["-m" "figwheel.main" "-b" "fig"]
-                        :extra-deps {com.bhauman/figwheel-main {:mvn/version "RELEASE"}}}
+                        :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.14"}}}
 
            ;; tests
            :test {:extra-paths ["src/test" "resources"]
                   :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
                                                           :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}
-                               cider/cider-nrepl {:mvn/version "RELEASE"}
-                               cider/piggieback {:mvn/version "RELEASE"}}
+                               cider/cider-nrepl {:mvn/version "0.26.0"}
+                               cider/piggieback {:mvn/version "0.5.2"}}
                   :main-opts ["-m" "cognitect.test-runner" "-d" "src/test"]}
 
            ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
@@ -40,7 +41,10 @@
                                                 :sha "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
                   :main-opts ["-m"]}
 
-           ;; clojure -M:dev-figwheel:fig-repl:dev-shadow:test:eastwood
+           :kondo
+           {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.08.06"}}
+            :main-opts  ["-m" "clj-kondo.main" "--lint" "src/dev" "src/main" "src/test"]}
+
            :eastwood
            {:main-opts ["-m" "eastwood.lint" {:config-files ["eastwood.clj"]}]
             :extra-deps {org.clojure/tools.nrepl {:mvn/version "0.2.13"}
