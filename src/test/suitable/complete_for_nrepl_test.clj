@@ -1,14 +1,15 @@
 (ns suitable.complete-for-nrepl-test
   (:require [clojure.test :as t :refer [deftest is run-tests use-fixtures testing compose-fixtures]]
+            [clojure.java.shell]
             [cider.piggieback :as piggieback]
             [cider.nrepl :refer [cider-nrepl-handler cider-middleware]]
             [nrepl.core :as nrepl]
             [nrepl.server :refer [start-server default-handler]]
             [suitable.middleware :refer [wrap-complete-standalone]]))
 
-(def ^:dynamic *handler* cider-nrepl-handler)
-(def ^:dynamic *session* nil)
+(require 'cljs.repl)
 
+(def ^:dynamic *session* nil)
 (def ^:dynamic ^nrepl.server.Server *server* nil)
 (def ^:dynamic ^nrepl.transport.FnTransport *transport* nil)
 
@@ -50,8 +51,7 @@
 
 (comment
   (start (cljs.repl.node/repl-env))
-  (stop)
-  )
+  (stop))
 
 (defmacro with-repl-env [renv & body]
   `(try
@@ -63,14 +63,23 @@
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 (deftest sanity-test-node
+  (let [{:keys [exit]
+         :as v} (clojure.java.shell/sh "node" "--version")]
+    (assert (zero? exit)
+            (pr-str v)))
+
   (require 'cljs.repl.node)
   (with-repl-env (cljs.repl.node/repl-env)
     (testing "cljs repl is active"
       (let [response (message {:op :eval
-                               :code (nrepl/code (js/Object.))})]
-        (is (= "cljs.user" (:ns response)))
-        (is (= ["#js{}"] (:value response)))
-        (is (= #{"done"} (:status response)))))))
+                               :code (nrepl/code (js/Object.))})
+            explanation (pr-str response)]
+        (is (= "cljs.user" (:ns response))
+            explanation)
+        (is (= ["#js{}"] (:value response))
+            explanation)
+        (is (= #{"done"} (:status response))
+            explanation)))))
 
 (deftest suitable-node
   (require 'cljs.repl.node)
@@ -83,16 +92,17 @@
         (is (= [{:candidate "js/Object", :ns "js", :type "function"}] candidates))))
 
     (testing "manages context state"
-        (message {:op "complete"
-                  :ns "cljs.user"
-                  :symbol ".xxxx"
-                  :context "(__prefix__ js/Object)"})
-        (let [response (message {:op "complete"
-                                 :ns "cljs.user"
-                                 :symbol ".key"
-                                 :context ":same"})
-              candidates (:completions response)]
-          (is (= [{:ns "js/Object", :candidate ".keys" :type "function"}] candidates))))))
+      (message {:op "complete"
+                :ns "cljs.user"
+                :symbol ".xxxx"
+                :context "(__prefix__ js/Object)"})
+      (let [response (message {:op "complete"
+                               :ns "cljs.user"
+                               :symbol ".key"
+                               :context ":same"})
+            candidates (:completions response)]
+        (is (= [{:ns "js/Object", :candidate ".keys" :type "function"}] candidates)
+            (pr-str response))))))
 
 (comment
   (run-tests))
