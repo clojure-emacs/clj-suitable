@@ -14,8 +14,11 @@
 (def ^:dynamic ^nrepl.transport.FnTransport *transport* nil)
 
 (defn message
-  ([msg] (message msg true))
+  ([msg]
+   (message msg true))
+
   ([msg combine-responses?]
+   {:pre [*session*]}
    (let [responses (nrepl/message *session* msg)]
      (if combine-responses?
        (nrepl/combine-responses responses)
@@ -27,38 +30,42 @@
 (def client nil)
 (def session nil)
 
-(defmacro start [renv-form]
-  `(do
-     (alter-var-root #'handler (constantly (default-handler #'piggieback/wrap-cljs-repl #'wrap-complete-standalone)))
-     (alter-var-root #'server (constantly (start-server :handler handler)))
-     (alter-var-root #'transport (constantly (nrepl/connect :port (:port server))))
-     (alter-var-root #'client (constantly (nrepl/client transport 3000)))
-     (alter-var-root #'session (constantly (nrepl/client-session client)))
-     (alter-var-root #'*server* (constantly server))
-     (alter-var-root #'*transport* (constantly transport))
-     (alter-var-root #'*session* (constantly session))
-     (dorun (message
-             {:op :eval
-              :code (nrepl/code (require '[cider.piggieback :as piggieback])
-                                (piggieback/cljs-repl ~renv-form))}))
-     (dorun (message {:op :eval
-                      :code (nrepl/code (require 'clojure.data))}))))
-
 (defn stop []
   (message {:op :eval :code (nrepl/code :cljs/quit)})
   (.close *transport*)
   (.close *server*))
 
-(comment
-  (start (cljs.repl.node/repl-env))
-  (stop))
+(defmacro with-repl-env
+  {:style/indent 1}
+  [renv-form & body]
+  `(do
+     (alter-var-root #'handler (constantly (->> cider-middleware
+                                                (map resolve)
+                                                (reverse)
+                                                (cons #'piggieback/wrap-cljs-repl)
+                                                (cons #'wrap-complete-standalone)
+                                                (reverse)
+                                                (apply default-handler))))
+     (alter-var-root #'server (constantly (start-server :handler handler)))
+     (alter-var-root #'transport (constantly (nrepl/connect :port (:port server))))
+     (alter-var-root #'client (constantly (nrepl/client transport 3000)))
+     (alter-var-root #'session (constantly (doto (nrepl/client-session client)
+                                             assert)))
+     (binding [*server* server
+               *transport* transport
+               *session* session]
+       (try
+         (dorun (message
+                 {:op :eval
+                  :code (nrepl/code (require '[cider.piggieback :as piggieback])
+                                    (piggieback/cljs-repl ~renv-form))}))
+         (dorun (message {:op :eval
+                          :code (nrepl/code (require 'clojure.data))}))
 
-(defmacro with-repl-env [renv & body]
-  `(try
-     (start ~renv)
-     ~@body
-     (finally
-       (stop))))
+         (do
+           ~@body)
+         (finally
+           (stop))))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
