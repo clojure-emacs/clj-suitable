@@ -48,7 +48,7 @@
                                                 (apply default-handler))))
      (alter-var-root #'server (constantly (start-server :handler handler)))
      (alter-var-root #'transport (constantly (nrepl/connect :port (:port server))))
-     (alter-var-root #'client (constantly (nrepl/client transport 3000)))
+     (alter-var-root #'client (constantly (nrepl/client transport (:port server))))
      (alter-var-root #'session (constantly (doto (nrepl/client-session client)
                                              assert)))
      (binding [*server* server
