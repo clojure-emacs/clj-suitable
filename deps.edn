@@ -34,6 +34,7 @@
                                                           :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}
                                cider/cider-nrepl {:mvn/version "0.26.0"}
                                cider/piggieback {:mvn/version "0.5.2"}}
+                  :jvm-opts ["-Dclojure.main.report=stderr"]
                   :main-opts ["-m" "cognitect.test-runner" "-d" "src/test"]}
 
            ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
