@@ -39,13 +39,7 @@
   {:style/indent 1}
   [renv-form & body]
   `(do
-     (alter-var-root #'handler (constantly (->> cider-middleware
-                                                (map resolve)
-                                                (reverse)
-                                                (cons #'piggieback/wrap-cljs-repl)
-                                                (cons #'wrap-complete-standalone)
-                                                (reverse)
-                                                (apply default-handler))))
+     (alter-var-root #'handler (constantly (default-handler #'piggieback/wrap-cljs-repl #'wrap-complete-standalone)))
      (alter-var-root #'server (constantly (start-server :handler handler)))
      (alter-var-root #'transport (constantly (nrepl/connect :port (:port server))))
      (alter-var-root #'client (constantly (nrepl/client transport (:port server))))
