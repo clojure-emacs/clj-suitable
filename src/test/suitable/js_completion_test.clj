@@ -1,7 +1,7 @@
 (ns suitable.js-completion-test
   (:require [clojure.pprint :refer [cl-format]]
             [clojure.string :refer [starts-with?]]
-            [clojure.test :as t :refer [deftest is]]
+            [clojure.test :as t :refer [deftest is testing]]
             [suitable.js-completions :as sut]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -132,18 +132,19 @@
            (sut/cljs-completions cljs-eval-fn "js/c" {:ns "cljs.user" :context ""})))))
 
 (deftest global-prop
-  (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -console))" "lo"
-                                        [{:name "log" :hierarchy 1 :type "function"}
-                                         {:name "clear" :hierarchy 1 :type "function"}])]
-    (is (= [(candidate "js/console.log" "js" "function")]
-           (sut/cljs-completions cljs-eval-fn "js/console.lo" {:ns "cljs.user" :context "js/console"})))))
+  (testing "console"
+    (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -console))" "lo"
+                                          [{:name "log" :hierarchy 1 :type "function"}
+                                           {:name "clear" :hierarchy 1 :type "function"}])]
+      (is (= [(candidate "js/console.log" "js" "function")]
+             (sut/cljs-completions cljs-eval-fn "js/console.lo" {:ns "cljs.user" :context "js/console"})))))
 
-(deftest global-prop-2
-  (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -window -console))" "lo"
-                                        [{:name "log" :hierarchy 1 :type "function"}
-                                         {:name "clear" :hierarchy 1 :type "function"}])]
-    (is (= [(candidate "js/window.console.log" "js" "function")]
-           (sut/cljs-completions cljs-eval-fn "js/window.console.lo" {:ns "cljs.user" :context "js/console"})))))
+  (testing "window.console"
+    (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -window -console))" "lo"
+                                          [{:name "log" :hierarchy 1 :type "function"}
+                                           {:name "clear" :hierarchy 1 :type "function"}])]
+      (is (= [(candidate "js/window.console.log" "js" "function")]
+             (sut/cljs-completions cljs-eval-fn "js/window.console.lo" {:ns "cljs.user" :context "js/console"}))))))
 
 (deftest simple
   (let [cljs-eval-fn (fake-cljs-eval-fn "js/console" "l" [{:name "log" :hierarchy 1 :type "function"}
