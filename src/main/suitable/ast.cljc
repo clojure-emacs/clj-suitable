@@ -1,7 +1,7 @@
 (ns suitable.ast
   (:require [clojure.pprint :refer [pprint *print-right-margin*]]
             [clojure.zip :as z])
-   #?(:clj (:import [clojure.lang IPersistentList IPersistentMap IPersistentVector ISeq])))
+  #?(:clj (:import [clojure.lang IPersistentList IPersistentMap IPersistentVector ISeq])))
 
 (def V #?(:clj IPersistentVector
           :cljs PersistentVector))
@@ -16,8 +16,8 @@
 (defmethod tree-branch? :default [_] false)
 (defmethod tree-branch? V [v] (not-empty v))
 (defmethod tree-branch? M [m] (not-empty m))
-(defmethod tree-branch? L [l] true)
-(defmethod tree-branch? S [s] true)
+(defmethod tree-branch? L [_l] true)
+(defmethod tree-branch? S [_s] true)
 (prefer-method tree-branch? L S)
 
 (defmulti tree-children type)
@@ -27,14 +27,14 @@
 (defmethod tree-children S [s] s)
 (prefer-method tree-children L S)
 
-(defmulti tree-make-node (fn [node children] (type node)))
-(defmethod tree-make-node V [v children]
+(defmulti tree-make-node (fn [node _children] (type node)))
+(defmethod tree-make-node V [_v children]
   (vec children))
-(defmethod tree-make-node M [m children]
+(defmethod tree-make-node M [_m children]
   (apply hash-map children))
 (defmethod tree-make-node L [_ children]
   children)
-(defmethod tree-make-node S [node children]
+(defmethod tree-make-node S [_node children]
   (apply list children))
 (prefer-method tree-make-node L S)
 
@@ -46,7 +46,7 @@
   [node]
   (let [all (take-while (complement z/end?) (iterate z/next (tree-zipper node)))]
     (binding [*print-right-margin* 20]
-     (pprint
-      (->> all
-        (map z/node) (zipmap (range))
-        sort)))))
+      (pprint
+       (->> all
+            (map z/node) (zipmap (range))
+            sort)))))

@@ -5,7 +5,7 @@
 (def NSES :cljs.analyzer/namespaces)
 
 (defn as-sym [x]
-  (if x (symbol x)))
+  (some-> x symbol))
 
 (defn namespace-sym
   "Return the namespace of a fully qualified symbol if possible.
@@ -146,17 +146,12 @@
   clojure.core/ns-publics but returns var analysis maps not vars.
 
   Inspired by the ns-publics in cljs.analyzer.api."
-  [env ns]
+  [_env ns]
   {:pre [(symbol? ns)]}
-  #?(:clj (when (and ns (clojure.core/find-ns ns))
-            (->> (ns-publics ns)
-                 (filter macro?)
-                 (into {})))
-     :cljs (->> (merge
-                 (get-in env [NSES ns :macros])
-                 (get-in env [NSES ns :defs]))
-                (remove (fn [[k v]] (:private v)))
-                (into {}))))
+  (when (and ns (clojure.core/find-ns ns))
+    (->> (ns-publics ns)
+         (filter macro?)
+         (into {}))))
 
 (defn core-vars
   "Returns a list of cljs.core vars visible to the ns."
@@ -168,7 +163,7 @@
 (defn core-macros
   "Returns a list of cljs.core macros visible to the ns."
   [env ns]
-  (let [macros (public-macros env #?(:clj 'cljs.core :cljs 'cljs.core$macros))
+  (let [macros (public-macros env 'cljs.core)
         excludes (:excludes (find-ns env ns))]
     (apply dissoc macros excludes)))
 
@@ -228,9 +223,7 @@
 (defn ns-obj?
   "Return true if n is a namespace object"
   [ns]
-  (instance? #?(:clj clojure.lang.Namespace
-                :cljs cljs.core/Namespace)
-             ns))
+  (instance? clojure.lang.Namespace ns))
 
 (defn var-meta
   "Return meta for the var, we wrap it in order to support both JVM and
@@ -240,9 +233,7 @@
     (map? var) (merge var)
     (var? var) (-> (merge (meta var))
                    (update :ns #(cond-> % (ns-obj? %) ns-name)))
-    true sanitize-ns
-    #?@(:cljs [true (-> (update :ns remove-macros)
-                        (update :name remove-macros))])))
+    true sanitize-ns))
 
 (defn qualified-symbol-meta
   "Given a namespace-qualified var name, gets the analyzer metadata for
@@ -260,10 +251,5 @@
   (meta (clojure.core/find-ns ns)))
 
 (defn macro-meta
-  [env qualified-sym]
-  #?(:clj (some-> (find-var qualified-sym) var-meta)
-     :cljs (let [referred-ns (symbol (namespace qualified-sym))]
-             (some-> env
-                     (ns-interns-from-env (add-ns-macros referred-ns))
-                     (get refer)
-                     var-meta))))
+  [_env qualified-sym]
+  (some-> (find-var qualified-sym) var-meta))

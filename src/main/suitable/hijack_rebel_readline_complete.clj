@@ -17,11 +17,11 @@
 
 (defmethod clj-reader/-complete ::rebel-cljs/service [_ word {:keys [ns context]}]
   (let [options (cond-> nil
-                  ns (assoc :current-ns ns))]
-    (let [renv cljs.repl/*repl-env*
-          cenv @cljs.env/*compiler*
-          suitables (cljs-completions
-                               (wrapped-cljs-repl-eval renv cenv)
-                               word {:ns ns :context context})
-          completions (cljs-complete/completions cenv word options)]
-      (concat suitables completions))))
+                  ns (assoc :current-ns ns))
+        renv cljs.repl/*repl-env*
+        cenv @cljs.env/*compiler*
+        suitables (cljs-completions
+                   (wrapped-cljs-repl-eval renv cenv)
+                   word {:ns ns :context context})
+        completions (cljs-complete/completions cenv word options)]
+    (concat suitables completions)))

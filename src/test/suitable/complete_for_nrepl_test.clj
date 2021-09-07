@@ -1,13 +1,13 @@
 (ns suitable.complete-for-nrepl-test
-  (:require [clojure.test :as t :refer [deftest is run-tests use-fixtures testing compose-fixtures]]
+  (:require [clojure.test :as t :refer [deftest is run-tests testing]]
             [clojure.java.shell]
             [cider.piggieback :as piggieback]
-            [cider.nrepl :refer [cider-nrepl-handler cider-middleware]]
             [nrepl.core :as nrepl]
             [nrepl.server :refer [start-server default-handler]]
             [suitable.middleware :refer [wrap-complete-standalone]]))
 
 (require 'cljs.repl)
+(require 'cljs.repl.node)
 
 (def ^:dynamic *session* nil)
 (def ^:dynamic ^nrepl.server.Server *server* nil)
@@ -69,7 +69,6 @@
     (assert (zero? exit)
             (pr-str v)))
 
-  (require 'cljs.repl.node)
   (with-repl-env (cljs.repl.node/repl-env)
     (testing "cljs repl is active"
       (let [response (message {:op :eval
@@ -83,7 +82,6 @@
             explanation)))))
 
 (deftest suitable-node
-  (require 'cljs.repl.node)
   (with-repl-env (cljs.repl.node/repl-env)
     (testing "js global completion"
       (let [response (message {:op "complete"

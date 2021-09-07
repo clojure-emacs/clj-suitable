@@ -44,7 +44,9 @@
 
            :kondo
            {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.08.06"}}
-            :main-opts  ["-m" "clj-kondo.main" "--lint" "src/dev" "src/main" "src/test"]}
+            :main-opts  ["-m" "clj-kondo.main" "--lint" "src/main" "src/test"
+                         ;; No src/dev linting for now - it has scratch namespaces which I don't want to break:
+                         #_ "src/dev"]}
 
            :eastwood
            {:main-opts ["-m" "eastwood.lint" {:config-files ["eastwood.clj"]}]

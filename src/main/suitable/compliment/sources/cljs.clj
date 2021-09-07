@@ -2,10 +2,10 @@
   "Standalone auto-complete library based on cljs analyzer state"
   (:refer-clojure :exclude [meta])
   (:require [clojure.set :as set]
-            #?(:clj [compliment.sources :refer [defsource]])
-            #?(:clj [compliment.utils :as utils :refer [*extra-metadata*]])
+            [compliment.sources :refer [defsource]]
+            [compliment.utils :as utils :refer [*extra-metadata*]]
             [suitable.compliment.sources.cljs.analysis :as ana])
-  #?(:clj (:import java.io.StringWriter)))
+  (:import java.io.StringWriter))
 
 (defn unquote-first
   "Handles some weird double-quoting in the analyzer"
@@ -225,7 +225,7 @@
   "Returns candidate data for all macros defined in ns."
   [env ns extra-metadata]
   (-> env
-      (ana/public-macros #?(:clj ns :cljs (ana/add-ns-macros ns)))
+      (ana/public-macros ns)
       (macro-candidates extra-metadata)))
 
 (defn- scoped-candidates
@@ -262,13 +262,6 @@
   [candidate prefix]
   (.startsWith ^String (:candidate candidate) prefix))
 
-#?(:cljs
-   (defn- remove-candidate-macros
-     [candidate]
-     (if (= :namespace (:type candidate))
-       (update candidate :candidate (comp str ana/remove-macros))
-       candidate)))
-
 (defn plain-symbol?
   "Tests if prefix is a symbol with no / (qualified), : (keyword) and
   . (segmented namespace)."
@@ -288,71 +281,67 @@
 
   It requires the compliment.sources.cljs/*compiler-env* var to be dynamically
   bound to the ClojureScript compiler env."
-  [prefix ns context]
-  #?(:clj
-     (let [context-ns (try (ns-name ns) (catch Exception _ nil))]
-       (->> (potential-candidates *compiler-env* context-ns prefix *extra-metadata*)
-            #?(:cljs (map remove-candidate-macros))
-            (distinct-candidates)
-            (filter #(candidate-match? % prefix)))))
-  #?(:cljs nil))
+  [prefix ns _context]
+  (let [context-ns (try (ns-name ns) (catch Exception _ nil))]
+    (->> (potential-candidates *compiler-env* context-ns prefix *extra-metadata*)
+         (distinct-candidates)
+         (filter #(candidate-match? % prefix)))))
 
-#?(:clj
-   (defn generate-docstring
-     "Generates a docstring from a given var metadata.
+(defn generate-docstring
+  "Generates a docstring from a given var metadata.
 
   Copied from `cljs.repl` with some minor modifications."
-     [{n :ns nm :name :as m}]
-     (binding [*out* (StringWriter.)]
-       (println "-------------------------")
-       (println (or (:spec m) (str (when-let [ns (:ns m)] (str ns "/")) (:name m))))
-       (when (:protocol m)
-         (println "Protocol"))
-       (cond
-         (:forms m) (doseq [f (:forms m)]
-                      (println "  " f))
-         (:arglists m) (let [arglists (:arglists m)]
-                         (if (or (:macro m)
-                                 (:repl-special-function m))
-                           (prn arglists)
-                           (prn
-                            (if (= 'quote (first arglists))
-                              (second arglists)
-                              arglists)))))
-       (if (:special-form m)
-         (do
-           (println "Special Form")
-           (println " " (:doc m))
-           (if (contains? m :url)
-             (when (:url m)
-               (println (str "\n  Please see http://clojure.org/" (:url m))))
-             (println (str "\n  Please see http://clojure.org/special_forms#"
-                           (:name m)))))
-         (do
-           (when (:macro m)
-             (println "Macro"))
-           (when (:spec m)
-             (println "Spec"))
-           (when (:repl-special-function m)
-             (println "REPL Special Function"))
-           (println " " (:doc m))
-           (when (:protocol m)
-             (doseq [[name {:keys [doc arglists]}] (:methods m)]
-               (println)
-               (println " " name)
-               (println " " arglists)
-               (when doc
-                 (println " " doc))))
-           ;; Specs are handled separately in cider-nrepl
-           ;;
-           ;; (when n
-           ;;   (when-let [fnspec (spec/get-spec (symbol (str (ns-name n)) (name nm)))]
-           ;;     (print "Spec")
-           ;;     (doseq [role [:args :ret :fn]]
-           ;;       (when-let [spec (get fnspec role)]
-           ;;         (print (str "\n " (name role) ":") (spec/describe spec))))))
-           ))
-       (str *out*))))
+  [m]
+  (binding [*out* (StringWriter.)]
+    (println "-------------------------")
+    (println (or (:spec m) (str (when-let [ns (:ns m)] (str ns "/")) (:name m))))
+    (when (:protocol m)
+      (println "Protocol"))
+    (cond
+      (:forms m) (doseq [f (:forms m)]
+                   (println "  " f))
+      (:arglists m) (let [arglists (:arglists m)]
+                      (if (or (:macro m)
+                              (:repl-special-function m))
+                        (prn arglists)
+                        (prn
+                         (if (= 'quote (first arglists))
+                           (second arglists)
+                           arglists)))))
+    (if (:special-form m)
+      (do
+        (println "Special Form")
+        (println " " (:doc m))
+        (if (contains? m :url)
+          (when (:url m)
+            (println (str "\n  Please see http://clojure.org/" (:url m))))
+          (println (str "\n  Please see http://clojure.org/special_forms#"
+                        (:name m)))))
+      (do
+        (when (:macro m)
+          (println "Macro"))
+        (when (:spec m)
+          (println "Spec"))
+        (when (:repl-special-function m)
+          (println "REPL Special Function"))
+        (println " " (:doc m))
+        (when (:protocol m)
+          (doseq [[name {:keys [doc arglists]}] (:methods m)]
+            (println)
+            (println " " name)
+            (println " " arglists)
+            (when doc
+              (println " " doc))))
+        ;; Specs are handled separately in cider-nrepl
+        ;;
+        ;; (when n
+        ;;   (when-let [fnspec (spec/get-spec (symbol (str (ns-name n)) (name nm)))]
+        ;;     (print "Spec")
+        ;;     (doseq [role [:args :ret :fn]]
+        ;;       (when-let [spec (get fnspec role)]
+        ;;         (print (str "\n " (name role) ":") (spec/describe spec))))))
+        ))
+    (str *out*)))
 
 (defn doc
   [s ns]
@@ -380,6 +369,6 @@
      (not-empty)
      (generate-docstring))))
 
-#?(:clj (defsource ::cljs-source
-          :candidates #'candidates
-          :doc #'doc))
+(defsource ::cljs-source
+  :candidates #'candidates
+  :doc #'doc)

@@ -23,7 +23,7 @@
            code (cl-format nil template obj-expr prefix)]
        (cljs-eval-fn ns "(require 'suitable.js-introspection)")
        (cljs-eval-fn ns code))
-     (catch #?(:clj Exception :cljs js/Error) e {:error e}))))
+     (catch Exception e {:error e}))))
 
 (defn find-prefix
   "Tree search for the symbol '__prefix. Returns a zipper."
@@ -53,11 +53,10 @@
   (when-let [form (if (string? context)
                     (try
                       (with-in-str context (read *in* nil nil))
-                      #?(:clj (catch Exception _e
-                               (when debug?
-                                 (binding [*out* *err*]
-                                   (cl-format true "[suitable] Error reading context: ~s" context)))))
-                      #?(:cljs (catch js/Error _e)))
+                      (catch Exception _e
+                        (when debug?
+                          (binding [*out* *err*]
+                            (cl-format true "[suitable] Error reading context: ~s" context)))))
                     context)]
     (let [prefix (find-prefix form)
           left-sibling (zip/left prefix)
@@ -72,45 +71,45 @@
                 (when maybe-expr
                   {:type type
                    :obj-expr maybe-expr}))]
-       (cond
-         (nil? prefix) nil
+        (cond
+          (nil? prefix) nil
 
-         ;; is it a threading macro?
-         threaded?
-         (with-type :-> (if first?
-                          ;; parent is the thread
-                          (some-> prefix zip/up zip/lefts str)
-                          ;; thread on same level
-                          (-> prefix zip/lefts str)))
+          ;; is it a threading macro?
+          threaded?
+          (with-type :-> (if first?
+                           ;; parent is the thread
+                           (some-> prefix zip/up zip/lefts str)
+                           ;; thread on same level
+                           (-> prefix zip/lefts str)))
 
-         doto?
-         (with-type :doto (if first?
-                            ;; parent is the thread
-                            (some-> prefix zip/up zip/leftmost zip/right zip/node str)
-                            ;; thread on same level
-                            (some-> prefix zip/leftmost zip/right zip/node str)))
+          doto?
+          (with-type :doto (if first?
+                             ;; parent is the thread
+                             (some-> prefix zip/up zip/leftmost zip/right zip/node str)
+                             ;; thread on same level
+                             (some-> prefix zip/leftmost zip/right zip/node str)))
 
-         ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
-         ;; expr up to that point. If just the object that is accessed is left of
-         ;; prefix, we can take that verbatim.
-         ;; (.. js/console log) => js/console
-         ;; (.. js/console -memory -jsHeapSizeLimit) => (.. js/console -memory)
-         (and first-sibling (#{"." ".."} (str first-sibling)) left-sibling)
-         (with-type :.. (let [lefts (-> prefix zip/lefts)]
-                          (if (<= (count lefts) 2)
-                            (str (last lefts))
-                            (str lefts))))
+          ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
+          ;; expr up to that point. If just the object that is accessed is left of
+          ;; prefix, we can take that verbatim.
+          ;; (.. js/console log) => js/console
+          ;; (.. js/console -memory -jsHeapSizeLimit) => (.. js/console -memory)
+          (and first-sibling (#{"." ".."} (str first-sibling)) left-sibling)
+          (with-type :.. (let [lefts (-> prefix zip/lefts)]
+                           (if (<= (count lefts) 2)
+                             (str (last lefts))
+                             (str lefts))))
 
-         ;; (.. js/window -console (log "foo")) => (.. js/window -console)
-         (and first? (some-> prefix zip/up zip/leftmost zip/node str (= "..")))
-         (with-type :.. (let [lefts (-> prefix zip/up zip/lefts)]
-                          (if (<= (count lefts) 2)
-                            (str (last lefts))
-                            (str lefts))))
+          ;; (.. js/window -console (log "foo")) => (.. js/window -console)
+          (and first? (some-> prefix zip/up zip/leftmost zip/node str (= "..")))
+          (with-type :.. (let [lefts (-> prefix zip/up zip/lefts)]
+                           (if (<= (count lefts) 2)
+                             (str (last lefts))
+                             (str lefts))))
 
-         ;; simple (.foo bar)
-         (and first? dot-fn?)
-         (with-type :. (some-> prefix zip/right zip/node str)))))))
+          ;; simple (.foo bar)
+          (and first? dot-fn?)
+          (with-type :. (some-> prefix zip/right zip/node str)))))))
 
 (def global-expr-re #"^js/((?:[^\.]+\.)*)([^\.]*)$")
 (def dot-dash-prefix-re #"^\.-?")
@@ -180,7 +179,7 @@
           (analyze-symbol-and-context symbol context)
           global? (#{:global} type)]
       (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
-        (if (not (empty? error))
+        (if (seq error)
           (when debug?
             (binding [*out* *err*]
               (println "[suitable] error in suitable cljs-completions:" error)))

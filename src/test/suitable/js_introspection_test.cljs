@@ -1,5 +1,5 @@
 (ns suitable.js-introspection-test
-  (:require [cljs.test :refer-macros [deftest is run-tests testing]]
+  (:require [cljs.test :refer-macros [deftest is]]
             [goog.object :refer [get set] :rename {get oget, set oset}]
             [suitable.js-introspection :as inspector]))
 
@@ -26,4 +26,3 @@
 (deftest find-props-in-obj
   (is (= (find-prop-named obj-1 "foo") {:name "foo", :hierarchy 0, :type "var"}))
   (is (= (find-prop-named obj-1 "bar") {:name "bar", :hierarchy 0, :type "function"})))
-

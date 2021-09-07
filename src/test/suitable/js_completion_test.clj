@@ -1,9 +1,8 @@
 (ns suitable.js-completion-test
   (:require [clojure.pprint :refer [cl-format]]
             [clojure.string :refer [starts-with?]]
-            [clojure.test :as t :refer [deftest is run-tests]]
+            [clojure.test :as t :refer [deftest is]]
             [suitable.js-completions :as sut]))
-
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; helpers
@@ -19,7 +18,7 @@
 
 
 (defn fake-cljs-eval-fn [expected-obj-expression expected-prefix properties]
-  (fn [ns code]
+  (fn [_ns code]
     (when-let [[_ obj-expr prefix]
                (re-matches
                 #"^\(suitable.js-introspection/property-names-and-types (.*) \"(.*)\"\)"
@@ -134,21 +133,21 @@
 
 (deftest global-prop
   (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -console))" "lo"
-                                         [{:name "log" :hierarchy 1 :type "function"}
-                                          {:name "clear" :hierarchy 1 :type "function"}])]
+                                        [{:name "log" :hierarchy 1 :type "function"}
+                                         {:name "clear" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "js/console.log" "js" "function")]
            (sut/cljs-completions cljs-eval-fn "js/console.lo" {:ns "cljs.user" :context "js/console"})))))
 
 (deftest global-prop-2
   (let [cljs-eval-fn (fake-cljs-eval-fn "(this-as this (.. this -window -console))" "lo"
-                                         [{:name "log" :hierarchy 1 :type "function"}
-                                          {:name "clear" :hierarchy 1 :type "function"}])]
+                                        [{:name "log" :hierarchy 1 :type "function"}
+                                         {:name "clear" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "js/window.console.log" "js" "function")]
            (sut/cljs-completions cljs-eval-fn "js/window.console.lo" {:ns "cljs.user" :context "js/console"})))))
 
 (deftest simple
   (let [cljs-eval-fn (fake-cljs-eval-fn "js/console" "l" [{:name "log" :hierarchy 1 :type "function"}
-                                                           {:name "clear" :hierarchy 1 :type "function"}])]
+                                                          {:name "clear" :hierarchy 1 :type "function"}])]
     (is (= [(candidate ".log" "js/console")]
            (sut/cljs-completions cljs-eval-fn ".l" {:ns "cljs.user" :context "(__prefix__ js/console)"})))
     (is (= [(candidate "log" "js/console")]
@@ -159,7 +158,7 @@
 
 (deftest dotdot-completion
   (let [cljs-eval-fn (fake-cljs-eval-fn "js/foo" "ba" [{:name "bar" :hierarchy 1 :type "var"}
-                                                        {:name "baz" :hierarchy 1 :type "function"}])]
+                                                       {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "js/foo")]
            (sut/cljs-completions cljs-eval-fn "-ba" {:ns "cljs.user" :context "(.. js/foo __prefix__)"})))
     (is (= [(candidate "baz" "js/foo")]
@@ -167,7 +166,7 @@
 
 (deftest dotdot-completion-chained+nested
   (let [cljs-eval-fn (fake-cljs-eval-fn "(.. js/foo zork)" "ba" [{:name "bar" :hierarchy 1 :type "var"}
-                                                        {:name "baz" :hierarchy 1 :type "function"}])]
+                                                                 {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "(.. js/foo zork)")]
            (sut/cljs-completions cljs-eval-fn "-ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))
     (is (= [(candidate "baz" "(.. js/foo zork)")]
@@ -176,7 +175,7 @@
 
 (deftest dotdot-completion-chained+nested-2
   (let [cljs-eval-fn (fake-cljs-eval-fn "(.. js/foo zork)" "ba" [{:name "bar" :hierarchy 1 :type "var"}
-                                                        {:name "baz" :hierarchy 1 :type "function"}])]
+                                                                 {:name "baz" :hierarchy 1 :type "function"}])]
     (is (= [(candidate "-bar" "(.. js/foo zork)")]
            (sut/cljs-completions cljs-eval-fn "-ba" {:ns "cljs.user" :context "(.. js/foo zork (__prefix__ \"foo\"))"})))
     (is (= [(candidate "baz" "(.. js/foo zork)")]

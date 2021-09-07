@@ -7,7 +7,7 @@
   "cljs-eval-fn for `suitable.cljs-completions` that can be used when a
   repl-env and compiler env are accessible, e.g. when running a normal repl."
   [repl-env compiler-env]
-  (fn [ns code]
+  (fn [_ns code]
     (try
       {:value (->> code
                    read-string
