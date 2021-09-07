@@ -8,15 +8,14 @@
 ;; they'll end up using the tools.nrepl, otherwise the modern one.
 (when-not (resolve 'set-descriptor!)
   (if (find-ns 'clojure.tools.nrepl)
-    (do (require
-         '[clojure.tools.nrepl.middleware :refer [set-descriptor!]]
-         '[nrepl.misc :refer [response-for]]
-         '[clojure.tools.nrepl.transport :as transport]))
-    (do
-      (require
-       '[nrepl.middleware :refer [set-descriptor!]]
-       '[nrepl.misc :refer [response-for]]
-       '[nrepl.transport :as transport]))))
+    (require
+     '[clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+     '[nrepl.misc :refer [response-for]]
+     '[clojure.tools.nrepl.transport :as transport])
+    (require
+     '[nrepl.middleware :refer [set-descriptor!]]
+     '[nrepl.misc :refer [response-for]]
+     '[nrepl.transport :as transport])))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -26,7 +25,7 @@
   response."
   ([msg completions]
    (completion-answer msg completions false))
-  ([{:keys [id session] :as msg} completions done?]
+  ([{:keys [id session] :as _msg} completions done?]
    (cond-> {:completions completions}
      id (assoc :id id)
      session (assoc :session (if (instance? clojure.lang.AReference session)
@@ -38,7 +37,7 @@
   "Handles op = \"complete\". Will try to fetch object completions and puts them
   on the wire with transport but also allows the default completion handler to
   act."
-  [standalone? next-handler {:keys [id session ns transport op symbol] :as msg}]
+  [standalone? next-handler {:keys [_id session _ns transport op symbol] :as msg}]
 
   (if (and
        ;; completion request?

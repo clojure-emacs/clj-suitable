@@ -27,7 +27,7 @@
   ([js-obj] (property-names-and-types js-obj nil))
   ([js-obj prefix]
    (let [seen (transient #{})]
-     (for [[i {:keys [obj props]}] (map-indexed vector (properties-by-prototype js-obj))
+     (for [[i {:keys [_obj props]}] (map-indexed vector (properties-by-prototype js-obj))
            key (js-keys props)
            :when (and (not (get seen key))
                       (or (empty? prefix)
@@ -42,7 +42,7 @@
                                          (apply [])))]
                     (if (fn? value) "function" "var")
                     "var")
-                  (catch js/Error e "var"))})))))
+                  (catch js/Error _e "var"))})))))
 
 (comment
   (require '[cljs.pprint :refer [pprint]])

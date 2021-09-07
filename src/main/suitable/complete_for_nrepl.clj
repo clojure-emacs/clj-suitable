@@ -1,8 +1,7 @@
 (ns suitable.complete-for-nrepl
   (:require [clojure.edn :as edn]
             [suitable.js-completions :refer [cljs-completions]]
-            [clojure.string :as string])
-  (:import java.io.StringReader))
+            [clojure.string :as string]))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; 2019-08-15 rk: FIXME! When being build as part of cider-nrepl, names of

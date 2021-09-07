@@ -1,10 +1,7 @@
 (ns suitable.compliment.sources.t-cljs
   (:require [clojure.set :as set]
-            [clojure.string :as s]
-            [clojure.test :as test #?(:clj :refer :cljs :refer-macros) [deftest is testing use-fixtures]]
-            [clojure.tools.reader.edn :as edn]
-            [clojure.walk :as walk]
-            #?(:clj [compliment.utils :refer [*extra-metadata*]])
+            [clojure.test :as test :refer [deftest is testing use-fixtures]]
+            [compliment.utils :refer [*extra-metadata*]]
             [suitable.cljs.env :as cljs-env]
             [suitable.compliment.sources.cljs :as cljs-sources]))
 
@@ -241,50 +238,49 @@
                 {:candidate "ES6IteratorSeq" :ns "cljs.core" :type :type})
               (completions "ES6I")))))
 
-#?(:clj
-   (deftest extra-metadata
-     (testing "Extra metadata: namespace :doc"
-       (binding [*extra-metadata* #{:doc}]
-         (is (set= '({:candidate "suitable.test-ns" :doc "A test namespace" :type :namespace}
-                     {:candidate "suitable.test-ns-dep" :doc "Dependency of test-ns namespace" :type :namespace})
-                   (completions "suitable.test-")))))
+(deftest extra-metadata
+  (testing "Extra metadata: namespace :doc"
+    (binding [*extra-metadata* #{:doc}]
+      (is (set= '({:candidate "suitable.test-ns" :doc "A test namespace" :type :namespace}
+                  {:candidate "suitable.test-ns-dep" :doc "Dependency of test-ns namespace" :type :namespace})
+                (completions "suitable.test-")))))
 
-     (testing "Extra metadata: aliased namespace :doc"
-       (binding [*extra-metadata* #{:doc}]
-         (is (= '({:candidate "test-dep" :doc "Dependency of test-ns namespace" :ns "suitable.test-ns-dep" :type :namespace})
-                (completions "test-d" 'suitable.test-ns)))))
+  (testing "Extra metadata: aliased namespace :doc"
+    (binding [*extra-metadata* #{:doc}]
+      (is (= '({:candidate "test-dep" :doc "Dependency of test-ns namespace" :ns "suitable.test-ns-dep" :type :namespace})
+             (completions "test-d" 'suitable.test-ns)))))
 
-     (testing "Extra metadata: macro namespace :doc"
-       (binding [*extra-metadata* #{:doc}]
-         (is (= '({:candidate "suitable.test-macros" :doc "A test macro namespace" :type :namespace})
-                (completions "suitable.test-m" 'suitable.test-ns)))))
+  (testing "Extra metadata: macro namespace :doc"
+    (binding [*extra-metadata* #{:doc}]
+      (is (= '({:candidate "suitable.test-macros" :doc "A test macro namespace" :type :namespace})
+             (completions "suitable.test-m" 'suitable.test-ns)))))
 
-     (testing "Extra metadata: normal var :arglists"
-       (binding [*extra-metadata* #{:arglists}]
-         (is (set= '({:candidate "unchecked-add" :ns "cljs.core" :arglists ("[]" "[x]" "[x y]" "[x y & more]") :type :function}
-                     {:candidate "unchecked-add-int" :ns "cljs.core" :arglists ("[]" "[x]" "[x y]" "[x y & more]") :type :function})
-                   (completions "unchecked-a" 'cljs.user)))))
+  (testing "Extra metadata: normal var :arglists"
+    (binding [*extra-metadata* #{:arglists}]
+      (is (set= '({:candidate "unchecked-add" :ns "cljs.core" :arglists ("[]" "[x]" "[x y]" "[x y & more]") :type :function}
+                  {:candidate "unchecked-add-int" :ns "cljs.core" :arglists ("[]" "[x]" "[x y]" "[x y & more]") :type :function})
+                (completions "unchecked-a" 'cljs.user)))))
 
-     (testing "Extra metadata: normal var :doc"
-       (binding [*extra-metadata* #{:doc}]
-         (is (set= '({:candidate "unchecked-add" :ns "cljs.core" :doc "Returns the sum of nums. (+) returns 0." :type :function}
-                     {:candidate "unchecked-add-int" :ns "cljs.core" :doc "Returns the sum of nums. (+) returns 0." :type :function})
-                   (completions "unchecked-a" 'cljs.user)))))
+  (testing "Extra metadata: normal var :doc"
+    (binding [*extra-metadata* #{:doc}]
+      (is (set= '({:candidate "unchecked-add" :ns "cljs.core" :doc "Returns the sum of nums. (+) returns 0." :type :function}
+                  {:candidate "unchecked-add-int" :ns "cljs.core" :doc "Returns the sum of nums. (+) returns 0." :type :function})
+                (completions "unchecked-a" 'cljs.user)))))
 
-     (testing "Extra metadata: macro :arglists"
-       (binding [*extra-metadata* #{:arglists}]
-         (is (= '({:candidate "defprotocol" :ns "cljs.core" :arglists ("[psym & doc+methods]") :type :macro})
-                (completions "defproto" 'cljs.user)))))
+  (testing "Extra metadata: macro :arglists"
+    (binding [*extra-metadata* #{:arglists}]
+      (is (= '({:candidate "defprotocol" :ns "cljs.core" :arglists ("[psym & doc+methods]") :type :macro})
+             (completions "defproto" 'cljs.user)))))
 
-     (testing "Extra metadata: referred var :arglists"
-       (binding [*extra-metadata* #{:arglists}]
-         (is (= '({:candidate "foo-in-dep" :ns "suitable.test-ns-dep" :arglists ("[foo]") :type :function})
-                (completions "foo" 'suitable.test-ns)))))
+  (testing "Extra metadata: referred var :arglists"
+    (binding [*extra-metadata* #{:arglists}]
+      (is (= '({:candidate "foo-in-dep" :ns "suitable.test-ns-dep" :arglists ("[foo]") :type :function})
+             (completions "foo" 'suitable.test-ns)))))
 
-     (testing "Extra metadata: referred macro :arglists"
-       (binding [*extra-metadata* #{:arglists}]
-         (is (= '({:candidate "my-add" :ns "suitable.test-macros" :arglists ("[a b]") :type :macro})
-                (completions "my-a" 'suitable.test-ns)))))))
+  (testing "Extra metadata: referred macro :arglists"
+    (binding [*extra-metadata* #{:arglists}]
+      (is (= '({:candidate "my-add" :ns "suitable.test-macros" :arglists ("[a b]") :type :macro})
+             (completions "my-a" 'suitable.test-ns))))))
 
 (deftest predicates
   (testing "The plain-symbol? predicate"

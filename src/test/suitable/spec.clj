@@ -22,10 +22,10 @@
 (s/fdef suitable-js/js-properties-of-object
   :args (s/cat :obj-expr ::non-empty-string
                :prefix (s/nilable string?))
-  :ret (s/keys :error (s/nilable string?)
-               :value (s/coll-of (s/keys {:name non-empty-string
-                                          :hierarchy int?
-                                          :type non-empty-string}))))
+  #_ :ret #_ (s/keys :error (s/nilable string?)
+                     :value (s/coll-of (s/keys {:name non-empty-string
+                                                :hierarchy int?
+                                                :type non-empty-string}))))
 
 ;; (require 'clojure.spec.test.alpha)
 ;; (clojure.spec.test.alpha/check ['suitable.js-completions/js-properties-of-object])
