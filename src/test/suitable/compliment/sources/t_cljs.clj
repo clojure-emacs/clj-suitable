@@ -1,9 +1,12 @@
 (ns suitable.compliment.sources.t-cljs
-  (:require [clojure.set :as set]
-            [clojure.test :as test :refer [deftest is testing use-fixtures]]
-            [compliment.utils :refer [*extra-metadata*]]
-            [suitable.cljs.env :as cljs-env]
-            [suitable.compliment.sources.cljs :as cljs-sources]))
+  (:require
+   [clojure.java.io :as io]
+   [clojure.set :as set]
+   [clojure.string :as string]
+   [clojure.test :as test :refer [deftest is testing use-fixtures]]
+   [compliment.utils :refer [*extra-metadata*]]
+   [suitable.cljs.env :as cljs-env]
+   [suitable.compliment.sources.cljs :as cljs-sources]))
 
 (use-fixtures :once
   (fn [f]
@@ -62,6 +65,19 @@
                 {:candidate "deftype*" :ns "cljs.core" :type :special-form})
               (->> (completions "d")
                    (filter #(= :special-form (:type %))))))))
+
+(deftest string-requires
+  (testing "https://github.com/clojure-emacs/clj-suitable/issues/22"
+    (let [ns-sym 'suitable.test-ns-dep
+          ns-filename (str (-> ns-sym
+                               str
+                               (string/replace "." "/")
+                               (string/replace "-" "_")
+                               (str ".cljs")))]
+      (assert (-> ns-filename io/resource slurp (string/includes? "[\"clojure.set\" :as set]"))
+              "The exercised ns has in fact a string require")
+      (is (seq (cljs-sources/candidates* "set" ns-sym))
+          "Successfully runs without throwing errors"))))
 
 (deftest namespace-completions
   (testing "Namespace"
