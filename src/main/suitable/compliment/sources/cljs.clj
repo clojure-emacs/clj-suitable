@@ -276,7 +276,7 @@
 
 (def ^:dynamic *compiler-env* nil)
 
-(defn candidates* [prefix context-ns]
+(defn- candidates* [prefix context-ns]
   (->> (potential-candidates *compiler-env* context-ns prefix *extra-metadata*)
        (distinct-candidates)
        (filter #(candidate-match? % prefix))))

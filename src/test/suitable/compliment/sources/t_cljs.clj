@@ -67,7 +67,8 @@
                    (filter #(= :special-form (:type %))))))))
 
 (deftest string-requires
-  (testing "https://github.com/clojure-emacs/clj-suitable/issues/22"
+  ;; See: https://github.com/clojure-emacs/clj-suitable/issues/22
+  (testing "Libspecs expressed under the newer string notation"
     (let [ns-sym 'suitable.test-ns-dep
           ns-filename (str (-> ns-sym
                                str
@@ -76,8 +77,8 @@
                                (str ".cljs")))]
       (assert (-> ns-filename io/resource slurp (string/includes? "[\"clojure.set\" :as set]"))
               "The exercised ns has in fact a string require")
-      (is (seq (cljs-sources/candidates* "set" ns-sym))
-          "Successfully runs without throwing errors"))))
+      (is (seq (#'cljs-sources/candidates* "set" ns-sym))
+          "Can be successfully run without throwing errors"))))
 
 (deftest namespace-completions
   (testing "Namespace"
