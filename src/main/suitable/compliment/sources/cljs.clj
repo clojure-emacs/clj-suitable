@@ -88,7 +88,8 @@
   [env context-ns extra-metadata]
   (for [[alias ns] (ana/macro-ns-aliases env context-ns)]
     (candidate-data alias
-                    (when-not (= alias ns) ns)
+                    (when-not (= alias ns)
+                      ns)
                     :namespace
                     ;; given macros are Clojure code we can simply find-ns
                     ;; the meta should probably be in the compiler env instead
@@ -275,6 +276,11 @@
 
 (def ^:dynamic *compiler-env* nil)
 
+(defn- candidates* [prefix context-ns]
+  (->> (potential-candidates *compiler-env* context-ns prefix *extra-metadata*)
+       (distinct-candidates)
+       (filter #(candidate-match? % prefix))))
+
 (defn candidates
   "Returns a sequence of candidate data for completions matching the given
   prefix string and options.
@@ -282,10 +288,11 @@
   It requires the compliment.sources.cljs/*compiler-env* var to be dynamically
   bound to the ClojureScript compiler env."
   [prefix ns _context]
-  (let [context-ns (try (ns-name ns) (catch Exception _ nil))]
-    (->> (potential-candidates *compiler-env* context-ns prefix *extra-metadata*)
-         (distinct-candidates)
-         (filter #(candidate-match? % prefix)))))
+  (let [context-ns (try
+                     (ns-name ns)
+                     (catch Exception _
+                       nil))]
+    (candidates* prefix context-ns)))
 
 (defn generate-docstring
   "Generates a docstring from a given var metadata.

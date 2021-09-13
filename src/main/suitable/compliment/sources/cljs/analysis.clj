@@ -247,8 +247,9 @@
 
 (defn ns-meta
   [ns]
-  {:pre [(symbol? ns)]}
-  (meta (clojure.core/find-ns ns)))
+  (if-not (symbol? ns)
+    {}
+    (meta (clojure.core/find-ns ns))))
 
 (defn macro-meta
   [_env qualified-sym]

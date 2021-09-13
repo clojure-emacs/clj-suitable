@@ -137,11 +137,10 @@ workflows:
       - util_job:
           name: Code Linting
           steps:
-            # FIXME satisfy then enable clj-kondo
-            ## - run:
-            ##     name: Running clj-kondo
-            ##     command: |
-            ##       clojure -M:dev-figwheel:fig-repl:dev-shadow:test:kondo
+            - run:
+                name: Running clj-kondo
+                command: |
+                  clojure -M:dev-figwheel:fig-repl:dev-shadow:test:kondo
             - run:
                 name: Running Eastwood
                 command: |
