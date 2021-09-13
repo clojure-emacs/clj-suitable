@@ -6,7 +6,7 @@
   <version>0.4.0</version>
   <name>suitable</name>
   <description>An addon for Figwheel and Emacs Cider to aid live exploratory development. Queries objects in ClojureScript for their properties to use as part of nREPL completion handlers.</description>
-  <url>http://github.com/rksm/clj-suitable</url>
+  <url>http://github.com/clojure-emacs/clj-suitable</url>
   <licenses>
     <license>
       <name>MIT License</name>
@@ -43,9 +43,9 @@
     <plugins/>
   </build>
   <scm>
-    <url>https://github.com/rksm/clj-suitable</url>
-    <connection>scm:git:git://github.com/rksm/clj-suitable.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/rksm/clj-suitable.git</developerConnection>
+    <url>https://github.com/clojure-emacs/clj-suitable</url>
+    <connection>scm:git:git://github.com/clojure-emacs/clj-suitable.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/clojure-emacs/clj-suitable.git</developerConnection>
   </scm>
   <repositories>
     <repository>

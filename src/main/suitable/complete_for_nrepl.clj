@@ -159,7 +159,7 @@
                                                       (if debug? " console.log(\"suitable loaded\");" "")))
         ;; wait as depending on the implemention of goog.require provide by the
         ;; cljs repl might be async. See
-        ;; https://github.com/rksm/clj-suitable/issues/1 for more details.
+        ;; https://github.com/clojure-emacs/clj-suitable/issues/1 for more details.
         (Thread/sleep 100)
 
         (update-cljs-state! session cenv renv)))))
