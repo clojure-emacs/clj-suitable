@@ -1,6 +1,9 @@
 # suitable - ClojureScript Completion Toolkit
 
+[![CircleCI](https://circleci.com/gh/clojure-emacs/clj-suitable/tree/master.svg?style=svg)](https://circleci.com/gh/clojure-emacs/clj-suitable/tree/master)
 [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
+[![cljdoc badge](https://cljdoc.org/badge/org.rksm/suitable)](https://cljdoc.org/d/org.rksm/suitable/CURRENT)
+[![downloads badge](https://versions.deps.co/org.rksm/suitable/downloads.svg)](https://clojars.org/org.rksm/suitable)
 
 `suitable` provides static and dynamic code completion for ClojureScript tools.
 
