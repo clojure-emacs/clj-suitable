@@ -108,14 +108,24 @@
   do some string munging according to
   `cider.piggieback/generate-delegating-repl-env`."
   [renv]
-  (= (some-> 'cljs.repl.node.NodeEnv
-             ^Class (resolve)
-             .getName
-             (string/replace "." "_"))
-     (-> renv
-         class
-         .getName
-         (string/replace #".*Delegating" ""))))
+  (let [normalize (fn [^Class c]
+                    (-> c
+                        .getName
+                        (string/replace "." "_")))
+        expected (some-> 'cljs.repl.node.NodeEnv
+                         resolve
+                         normalize)
+        actual (some-> renv
+                       class
+                       normalize
+                       ;; Examples of what has to be stripped away:
+                       ;; user$eval4016$__GT_Delegatingcljs_repl_node_NodeEnv__4018
+                       ;; user$eval4016$__GT_Delegatingcljs_repl_node_NodeEnv__4018@56478522
+                       (string/replace #".*Delegating" "")
+                       (string/replace #"__\d+$" "")
+                       (string/replace #"__\d+@.*$" ""))]
+    (and (some? actual) ;; avoid (= nil nil), which would return a spurious result
+         (= expected actual))))
 
 (defn ensure-suitable-cljs-is-loaded [session]
   (let [{:keys [cenv renv opts]} (extract-cljs-state session)]
