@@ -118,9 +118,9 @@ You'll still be using suitable this way, but only its static completion mechanis
 
 ### VS Code Calva
 
-Suitable is always-on, just as with CIDER.
+Everything in the section above applies when using Calva.
 
-**Re: Enhanced/dynamic completions**: The `calva.enableJSCompletions` setting controls this, and it is enabled by default. (For the same reasons as with CIDER, it is currently disabled when using `shadow-cljs`.)
+The `calva.enableJSCompletions` setting controls dynamic completion, and it is enabled by default.
 
 ### Custom nREPL server
 
