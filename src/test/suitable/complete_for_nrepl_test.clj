@@ -1,10 +1,12 @@
 (ns suitable.complete-for-nrepl-test
-  (:require [clojure.test :as t :refer [deftest is run-tests testing]]
-            [clojure.java.shell]
-            [cider.piggieback :as piggieback]
-            [nrepl.core :as nrepl]
-            [nrepl.server :refer [start-server default-handler]]
-            [suitable.middleware :refer [wrap-complete-standalone]]))
+  (:require
+   [cider.piggieback :as piggieback]
+   [clojure.java.shell]
+   [clojure.test :as t :refer [deftest is run-tests testing]]
+   [nrepl.core :as nrepl]
+   [nrepl.server :refer [start-server default-handler]]
+   [suitable.complete-for-nrepl :as sut]
+   [suitable.middleware :refer [wrap-complete-standalone]]))
 
 (require 'cljs.repl)
 (require 'cljs.repl.node)
@@ -102,6 +104,13 @@
             candidates (:completions response)]
         (is (= [{:ns "js/Object", :candidate ".keys" :type "function"}] candidates)
             (pr-str response))))))
+
+(deftest node-env?
+  (is (false? (sut/node-env? nil)))
+  (is (false? (sut/node-env? 42)))
+  (is (sut/node-env? (cljs.repl.node/repl-env)))
+  ;; Exercise `piggieback/generate-delegating-repl-env` because it's mentioned in the docstring of `sut/node-env?`:
+  (is (sut/node-env? (#'piggieback/generate-delegating-repl-env (cljs.repl.node/repl-env)))))
 
 (comment
   (run-tests))
