@@ -9,6 +9,5 @@
 /.shadow-cljs
 /nashorn_code_cache/
 /out/
-/project.clj
 /suitable.jar
 /target/
