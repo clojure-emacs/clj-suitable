@@ -7,6 +7,10 @@
 
 (def debug? false)
 
+;; mranderson-friendly
+(defn js-introspection-ns []
+  (-> ::_ namespace (replace ".js-completions" ".js-introspection")))
+
 (defn js-properties-of-object
   "Returns the properties of the object we get by evaluating `obj-expr` filtered
   by all those that start with `prefix`."
@@ -19,9 +23,11 @@
      ;; to avoid
      ;; Compile Warning:  Use of undeclared Var
      ;;   suitable.js-introspection/property-names-and-types
-     (let [template "(suitable.js-introspection/property-names-and-types ~A ~S)"
+     (let [template (str "("
+                         (js-introspection-ns)
+                         "/property-names-and-types ~A ~S)")
            code (cl-format nil template obj-expr prefix)]
-       (cljs-eval-fn ns "(require 'suitable.js-introspection)")
+       (cljs-eval-fn ns (str "(require '" (js-introspection-ns) ")"))
        (cljs-eval-fn ns code))
      (catch Exception e {:error e}))))
 

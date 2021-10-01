@@ -12,8 +12,14 @@
 ;; of course breaks when suitable.complete-for-nrepl is renamed(!).
 (def dummy-var)
 (def this-ns (:ns (meta #'dummy-var)))
-(def munged-js-introspection-ns (string/replace (name (clojure.core/ns-name this-ns)) #"complete-for-nrepl$" "js-introspection"))
-(def munged-js-introspection-js-name (symbol (string/replace munged-js-introspection-ns #"-" "_")))
+
+(defn munged-js-introspection-ns []
+  (suitable.js-completions/js-introspection-ns))
+
+(defn munged-js-introspection-js-name []
+  (-> (munged-js-introspection-ns)
+      (string/replace #"-" "_")
+      symbol))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -143,19 +149,19 @@
       (when (not= "true" (some-> (cljs-evaluate-fn
                                   renv "<suitable>" 1
                                   ;; see above, would be suitable.js_introspection
-                                  (format "!!goog.getObjectByName('%s')" munged-js-introspection-js-name)) :value))
+                                  (format "!!goog.getObjectByName('%s')" (munged-js-introspection-js-name))) :value))
         (try
           ;; see above, would be suitable.js-introspection
-          (cljs-load-namespace-fn renv (read-string munged-js-introspection-ns) opts)
+          (cljs-load-namespace-fn renv (read-string (munged-js-introspection-ns)) opts)
           (catch Exception e
             ;; when run with mranderson, cljs does not seem to handle the ns
             ;; annotation correctly and does not recognize the namespace even
             ;; though it loads correctly.
-            (when-not (and (string/includes? munged-js-introspection-ns "inlined-deps")
+            (when-not (and (string/includes? (munged-js-introspection-ns) "inlined-deps")
                            (string/includes? (string/lower-case (str e)) "does not provide a namespace"))
               (throw e))))
         (cljs-evaluate-fn renv "<suitable>" 1 (format "goog.require(\"%s\");%s"
-                                                      munged-js-introspection-js-name
+                                                      (munged-js-introspection-js-name)
                                                       (if debug? " console.log(\"suitable loaded\");" "")))
         ;; wait as depending on the implemention of goog.require provide by the
         ;; cljs repl might be async. See
