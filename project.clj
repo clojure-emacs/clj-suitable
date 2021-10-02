@@ -138,4 +138,8 @@ Distributed under the Eclipse Public License either version 1.0 or (at your opti
                                  [[(str "public-" n) {:url u}]
                                   [(str "private-" n) {:url u :protocol :ssh}]])))
                         (apply concat)
-                        vec)))
+                        vec)
+    :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
+                                      :username :env/clojars_username
+                                      :password :env/clojars_password
+                                      :sign-releases false}]]))
