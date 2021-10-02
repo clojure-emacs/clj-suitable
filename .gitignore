@@ -1,5 +1,6 @@
 .cljs_*_repl/
 .nrepl-port
+pom.xml
 /.calva/output-window/*.calva-repl
 /.cljs_nashorn_repl/
 /.cljs_node_repl/

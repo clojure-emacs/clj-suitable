@@ -123,7 +123,7 @@ Distributed under the Eclipse Public License either version 1.0 or (at your opti
 
 (let [f (-> "deps.edn" java.io.File. .getCanonicalPath)
       {:keys [profiles dependencies resource-paths source-paths]} (parse-deps-edn f f)]
-  (defproject org.rksm/suitable "0.4.1-alpha2"
+  (defproject org.rksm/suitable "0.4.1"
     :source-paths ~source-paths
     :resource-paths ~resource-paths
     :dependencies ~dependencies
