@@ -104,9 +104,9 @@ Then you can start a repl with `lein trampoline run -m suitable.figwheel.main --
 
 ### Emacs CIDER
 
-Suitable is used by CIDER's code completion middleware (as of CIDER 0.22.0), so no extra installation steps are required.
+`suitable` is used by CIDER's code completion middleware (as of CIDER 0.22.0), so no extra installation steps are required.
 
-CIDER will always use the static code completion provided by suitable, regardless of the ClojureScript runtime, but the dynamic completion is **not** currently available with `shadow-cljs`. (See [this ticket](https://github.com/clojure-emacs/clj-suitable/issues/15) for more details)
+CIDER will always use the static code completion provided by suitable, regardless of the ClojureScript runtime.
 
 In case you run into any issues with suitable's dynamic completion in CIDER you can disable it like this:
 
@@ -114,7 +114,7 @@ In case you run into any issues with suitable's dynamic completion in CIDER you 
 (setq cider-enhanced-cljs-completion-p nil)
 ```
 
-You'll still be using suitable this way, but only its static completion mechanism.
+You'll still be using `suitable` this way, but only its static completion mechanism.
 
 ### VS Code Calva
 
@@ -146,10 +146,6 @@ Or from within Clojure:
 ```
 
 **Note:** Make sure to use the latest version of `cider-nrepl` and `piggieback`.
-
-### shadow-cljs + cider
-
-Please see [issue #2](https://github.com/clojure-emacs/clj-suitable/issues/2#issuecomment-578447046).
 
 ## How does it work?
 
