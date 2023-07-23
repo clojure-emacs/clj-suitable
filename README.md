@@ -46,7 +46,7 @@ The dynamic code completion features allow for exploratory development by inspec
 
 The dynamic code completion *evaluates* code on completion requests! It does this by trying to [enumerate the properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptors) of JavaScript objects, so in the example above it would fetch all properties of the `js/document` object. This might cause side effects: Even just reading property values of an object can run arbitrary code if that object defines getter functions.
 
-Moreover, also chains of methods and properties will be evaluated upon completion requests. So for example, asking for completions for the code / cursor position `(-> js/some-object (.deleteAllMyFilesAndStartAWar) .|)` will evaluate the JavaScript code `some-object.deleteAllMyFilesAndStartAWar()`! This only applies to JavaSript interop code, i.e. JavaScript methods and properties. Pure ClojureScript is not inspected or evaluated. Please be aware of this behavior when using the dynamic code completion features.
+Moreover, also chains of methods and properties will be evaluated upon completion requests. So for example, asking for completions for the code / cursor position `(-> js/some-object (.deleteAllMyFilesAndStartAWar) .|)` will evaluate the JavaScript code `some-object.deleteAllMyFilesAndStartAWar()`! This only applies to JavaScript interop code, i.e. JavaScript methods and properties. Pure ClojureScript is not inspected or evaluated. Please be aware of this behavior when using the dynamic code completion features.
 
 ### Dynamic completion Demo
 
@@ -152,7 +152,15 @@ Or from within Clojure:
 suitable uses the same input as the widely used
 [compliment](https://github.com/alexander-yakushev/compliment). This means it gets a prefix string and a context form from the tool it is connected to. For example you type `(.l| js/console)` with "|" marking where your cursor is. The input we get would then be: prefix = `.l` and context = `(__prefix__ js/console)`.
 
-suitable recognizes various ways how CLJS can access properties and methods, such as `.`, `..`, `doto`, and threading forms. Also direct global access is supported such as `js/console.log`. suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system then uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are converted into completion candidates and send back to the tooling.
+suitable recognizes various ways how CLJS can access properties and methods, such as:
+
+* `.`,
+* `..`
+* `doto`
+* threading forms
+  * For this specific case, evaluation-based (side-effectful) code completion will be only performed if the threading form appears to deal with js objects. 
+
+Also, direct global access is supported such as `js/console.log`. suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system then uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are converted into completion candidates and send back to the tooling.
 
 ## License
 

@@ -2,6 +2,8 @@
 
 ## master
 
+* [#30](https://github.com/clojure-emacs/clj-suitable/issues/30): don't run side-effects for pure-clojurescript (non-interop) `->` chains.
+
 ## 0.4.1 (2021-10-02)
 
 * [#22](https://github.com/clojure-emacs/clj-suitable/issues/22): Gracefully handle string requires.
