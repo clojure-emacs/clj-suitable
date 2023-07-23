@@ -131,7 +131,7 @@ workflows:
               # FIXME other things worth adding to the matrix:
               # - cider-nrepl
               # - node.js runtimes
-              clojure_version: ["1.9", "1.10", "1.11", "master"]
+              clojure_version: ["1.8", "1.9", "1.10", "1.11", "master"]
               jdk_version: [openjdk8, openjdk11, openjdk16]
       - util_job:
           name: Code Linting
