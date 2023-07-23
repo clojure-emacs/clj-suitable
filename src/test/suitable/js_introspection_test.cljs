@@ -14,11 +14,13 @@
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; test data
 
-(def obj-1 (new (fn [x] (this-as this
-                          (oset this "foo" 23)
-                          (oset this "bar" (fn [] 23))))))
+(def obj-1 (new (fn [_x]
+                  (this-as this
+                    (oset this "foo" 23)
+                    (oset this "bar" (fn [] 23))))))
 
-(def obj-2 (new (fn [x] (this-as this (oset this "foo" 23)))))
+(def obj-2 (new (fn [_x]
+                  (this-as this (oset this "foo" 23)))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; tests

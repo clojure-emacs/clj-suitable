@@ -10,7 +10,7 @@
 ;; ns (can't use *ns* when bundled so abusing `dummy-var` for that) which has
 ;; the munged prefix. We then convert that into the cljs namespace we need. This
 ;; of course breaks when suitable.complete-for-nrepl is renamed(!).
-(def dummy-var)
+(def dummy-var nil)
 (def this-ns (:ns (meta #'dummy-var)))
 
 (defn munged-js-introspection-ns []

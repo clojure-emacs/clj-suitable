@@ -28,15 +28,19 @@
   "Abuses the nrepl handler `piggieback/do-eval` in that it injects a pseudo
   transport into it that simply captures it's output."
   [session ns code]
-  (let [result (transient [])
+  (let [result (volatile! [])
         transport (reify Transport
-                    (recv [this] this)
-                    (recv [this timeout] this)
-                    (send [this response] (conj! result response) this))
+                    (recv [this]
+                      this)
+                    (recv [this timeout]
+                      this)
+                    (send [this response]
+                      (vswap! response conj result)
+                      this))
         eval-fn (or (resolve 'piggieback.core/do-eval)
                     (resolve 'cider.piggieback/do-eval))]
     (eval-fn {:session session :transport transport :code code :ns ns})
-    (persistent! result)))
+    @result))
 
 (defonce state (atom nil))
 
@@ -92,7 +96,7 @@
         middlewares (conj middlewares #'suitable.middleware/wrap-complete)
         ;; handler (nrepl.server/default-handler #'cider.piggieback/wrap-cljs-repl)
         handler (apply nrepl.server/default-handler middlewares)]
-   (reset! server (nrepl.server/start-server :handler handler :port 7889)))
+    (reset! server (nrepl.server/start-server :handler handler :port 7889)))
   (cl-format true "nrepl server started~%"))
 
 (defonce client (atom nil))
@@ -107,8 +111,8 @@
     (cl-format true "nrepl client started~%")
     (reset! send-msg
             (fn [msg] (let [response-seq (nrepl.core/message sess msg)]
-                         (cl-format true "nrepl msg send~%")
-                         (pprint (doall response-seq)))))))
+                        (cl-format true "nrepl msg send~%")
+                        (pprint (doall response-seq)))))))
 
 (defn send-eval [code]
   (@send-msg {:op :eval :code code}))
