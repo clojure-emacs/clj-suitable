@@ -13,9 +13,7 @@
                    (into {})
                    clj->js))))
 
-(defn properties-by-prototype
-  ""
-  [obj]
+(defn properties-by-prototype [obj]
   (loop [obj obj protos []]
     (if obj
       (recur
@@ -26,14 +24,14 @@
 (defn property-names-and-types
   ([js-obj] (property-names-and-types js-obj nil))
   ([js-obj prefix]
-   (let [seen (transient #{})]
+   (let [seen (volatile! #{})]
      (for [[i {:keys [_obj props]}] (map-indexed vector (properties-by-prototype js-obj))
            key (js-keys props)
-           :when (and (not (get seen key))
+           :when (and (not (get @seen key))
                       (or (empty? prefix)
                           (starts-with? key prefix)))]
        (let [prop (oget props key)]
-         (conj! seen key)
+         (vswap! seen conj key)
          {:name key
           :hierarchy i
           :type (try

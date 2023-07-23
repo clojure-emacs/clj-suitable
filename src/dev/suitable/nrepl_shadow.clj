@@ -1,10 +1,12 @@
 (ns suitable.nrepl-shadow
-  (:require shadow.cljs.devtools.server
-            [suitable.nrepl :refer [start-clj-nrepl-server
-                                    start-cljs-nrepl-server
-                                    start-cljs-nrepl-client
-                                    cljs-nrepl-server
-                                    cljs-send-eval]]))
+  (:require
+   [shadow.cljs.devtools.server]
+   [shadow.cljs.devtools.config :as config]
+   [suitable.nrepl :refer [start-clj-nrepl-server
+                           start-cljs-nrepl-server
+                           start-cljs-nrepl-client
+                           cljs-nrepl-server
+                           cljs-send-eval]]))
 
 ;;;; nrepl servers with shadow-cljs
 ;;; start and connect to localhost:7889 via cider for a cljs repl. connect to
@@ -14,5 +16,5 @@
   (start-clj-nrepl-server)
   (shadow.cljs.devtools.server/start!
    (merge
-    (shadow.cljs.devtools.server/load-config)
+    (config/load-cljs-edn)
     {:nrepl {:port 7889}})))

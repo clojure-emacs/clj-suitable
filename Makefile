@@ -1,7 +1,6 @@
-.PHONY: clean test install deploy nrepl fig-repl
+.PHONY: clean test install deploy nrepl fig-repl kondo eastwood lint
 
-CLJ_FILES := $(shell find src -iname *.cljs -o -iname *.cljc  -o -iname *.clj)
-SRC_FILES := ${CLJ_FILES} deps.edn fig.cljs.edn Makefile
+VERSION ?= 1.10
 
 clean:
 	@-rm -rf target/public/cljs-out \
@@ -13,15 +12,23 @@ clean:
 		.rebel_readline_history
 	lein with-profile -user clean
 
-test: ${SRC_FILES}
-	clojure -A:test -d src/test
+test: clean
+	clojure -A:test:$(VERSION) -d src/test
+
+kondo:
+	clojure -M:dev-figwheel:fig-repl:dev-shadow:test:kondo
+
+eastwood:
+	clojure -M:dev-figwheel:fig-repl:dev-shadow:test:eastwood
+
+lint: kondo eastwood
 
 install: clean
 	lein with-profile -user,-dev install
 
 # CLOJARS_USERNAME=$USER CLOJARS_PASSWORD=$(pbpaste) make deploy
 deploy: clean
-	lein with-profile -user,-dev deploy clojars 
+	lein with-profile -user,-dev deploy clojars
 
 # starts a figwheel repl with suitable enabled
 fig-repl:

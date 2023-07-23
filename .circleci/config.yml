@@ -129,10 +129,9 @@ workflows:
           matrix:
             parameters:
               # FIXME other things worth adding to the matrix:
-              # - clojurescript
               # - cider-nrepl
               # - node.js runtimes
-              clojure_version: ["1.8", "1.9", "1.10", "master"]
+              clojure_version: ["1.8", "1.9", "1.10", "1.11", "master"]
               jdk_version: [openjdk8, openjdk11, openjdk16]
       - util_job:
           name: Code Linting
@@ -140,8 +139,8 @@ workflows:
             - run:
                 name: Running clj-kondo
                 command: |
-                  clojure -M:dev-figwheel:fig-repl:dev-shadow:test:kondo
+                  make kondo
             - run:
                 name: Running Eastwood
                 command: |
-                  clojure -M:dev-figwheel:fig-repl:dev-shadow:test:eastwood
+                  make eastwood

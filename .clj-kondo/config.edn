@@ -1,19 +1,13 @@
 {:skip-comments true
- :linters
- {:unresolved-symbol
-  {:exclude
-   [set-descriptor!
-    (suitable.complete-for-nrepl/with-cljs-env [cljs-eval-cljs-fn
-                                                cljs-repl-setup-fn
-                                                cljs-load-namespace-fn
-                                                cljs-evaluate-fn])]}
+ :linters {:unresolved-symbol {:exclude [set-descriptor! (suitable.complete-for-nrepl/with-cljs-env [cljs-eval-cljs-fn
+                                                                                                     cljs-repl-setup-fn
+                                                                                                     cljs-load-namespace-fn
+                                                                                                     cljs-evaluate-fn])]}
 
-  :unresolved-namespace
-  {:exclude
-   [transport]}
+           :unresolved-namespace {:exclude [transport
+                                            js]}
 
-  :unresolved-var
-  {:exclude []}
+           :unresolved-var {:exclude []}
 
-  :unused-referred-var {:level :off ;; disabled for now because the next line doesn't appear to work
-                        :exclude {goog.object [set]}}}}
+           :unused-referred-var {:level :off ;; disabled for now because the next line doesn't appear to work
+                                 :exclude {goog.object [set]}}}}
