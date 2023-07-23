@@ -1,5 +1,7 @@
 .PHONY: clean test install deploy nrepl fig-repl kondo eastwood lint
 
+VERSION ?= 1.10
+
 clean:
 	@-rm -rf target/public/cljs-out \
 		suitable.jar \
