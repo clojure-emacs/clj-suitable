@@ -1,9 +1,10 @@
 (ns suitable.js-completions
   (:refer-clojure :exclude [replace])
-  (:require [clojure.pprint :refer [cl-format]]
-            [clojure.string :refer [replace split starts-with?]]
-            [clojure.zip :as zip]
-            [suitable.ast :refer [tree-zipper]]))
+  (:require
+   [clojure.pprint :refer [cl-format]]
+   [clojure.string :refer [replace split starts-with?]]
+   [clojure.zip :as zip]
+   [suitable.ast :refer [tree-zipper]]))
 
 (def debug? false)
 
@@ -45,16 +46,22 @@
   [form]
   (->> form
        str
-       (re-find #"->")
-       nil?
-       not))
+       (re-find #"^->")
+       some?))
 
 (defn doto-form? [form]
-  (= form 'doto))
+  (#{'doto 'cljs.core/doto} form))
+
+(defn js-interop? [x]
+  (boolean (or (and (symbol? x)
+                    (-> x namespace (= "js")))
+               (and (seq? x)
+                    (-> x first symbol?)
+                    (-> x first namespace (= "js"))))))
 
 (defn expr-for-parent-obj
-  "Given the context and symbol of a completion request, will try to find an
-  expression that evaluates to the object being accessed."
+  "Given the `context` and `symbol` of a completion request,
+  will try to find an expression that evaluates to the object being accessed."
   [symbol context]
   (when-let [form (if (string? context)
                     (try
@@ -67,33 +74,50 @@
     (let [prefix (find-prefix form)
           left-sibling (zip/left prefix)
           first? (nil? left-sibling)
-          first-sibling (and (not first?) (some-> prefix zip/leftmost zip/node))
+          first-sibling (when-not first?
+                          (some-> prefix zip/leftmost zip/node))
           first-sibling-in-parent (some-> prefix zip/up zip/leftmost zip/node)
-          threaded? (if first? (thread-form? first-sibling-in-parent) (thread-form? first-sibling) )
-          doto? (if first? (doto-form? first-sibling-in-parent) (doto-form? first-sibling))
+          relevant-first-member (if first?
+                                  first-sibling-in-parent
+                                  first-sibling)
+          threaded? (thread-form? relevant-first-member)
+          doto? (doto-form? relevant-first-member)
+          base (cond-> prefix
+                 (or (and threaded? first?)
+                     (and doto? first?))
+                 zip/up)
+          ;; the operand is the element over which the main -> (or doto, .., ., .-, etc) is being applied
+          ;; e.g. for (-> x f g h), it's x
+          ;; and  for (-> x f (__prefix__)), it's also x
+          operand (some-> base zip/leftmost zip/right zip/node)
           dot-fn? (starts-with? symbol ".")]
 
-      (letfn [(with-type [type maybe-expr]
+      (letfn [(with-type [type likely-interop? maybe-expr]
                 (when maybe-expr
                   {:type type
+                   :js-interop? (or likely-interop? ;; .., doto, . and .- are mainly used for interop, so we can infer the intent is for interop.
+                                    ;; NOTE: detection could be extended to also detect when a given symbol `foo`
+                                    ;; maps to a JS library that was `require`d with "string requires".
+                                    ;; The cljs analyzer could be used for that.
+                                    (js-interop? operand))
                    :obj-expr maybe-expr}))]
         (cond
           (nil? prefix) nil
 
           ;; is it a threading macro?
           threaded?
-          (with-type :-> (if first?
-                           ;; parent is the thread
-                           (some-> prefix zip/up zip/lefts str)
-                           ;; thread on same level
-                           (-> prefix zip/lefts str)))
+          (with-type :-> false (if first?
+                                 ;; parent is the thread
+                                 (some-> prefix zip/up zip/lefts str)
+                                 ;; thread on same level
+                                 (-> prefix zip/lefts str)))
 
           doto?
-          (with-type :doto (if first?
-                             ;; parent is the thread
-                             (some-> prefix zip/up zip/leftmost zip/right zip/node str)
-                             ;; thread on same level
-                             (some-> prefix zip/leftmost zip/right zip/node str)))
+          (with-type :doto true (if first?
+                                  ;; parent is the thread
+                                  (some-> prefix zip/up zip/leftmost zip/right zip/node str)
+                                  ;; thread on same level
+                                  (some-> prefix zip/leftmost zip/right zip/node str)))
 
           ;; a .. form: if __prefix__ is a prop deeper than one level we need the ..
           ;; expr up to that point. If just the object that is accessed is left of
@@ -101,21 +125,21 @@
           ;; (.. js/console log) => js/console
           ;; (.. js/console -memory -jsHeapSizeLimit) => (.. js/console -memory)
           (and first-sibling (#{"." ".."} (str first-sibling)) left-sibling)
-          (with-type :.. (let [lefts (-> prefix zip/lefts)]
-                           (if (<= (count lefts) 2)
-                             (str (last lefts))
-                             (str lefts))))
+          (with-type :.. true (let [lefts (-> prefix zip/lefts)]
+                                (if (<= (count lefts) 2)
+                                  (str (last lefts))
+                                  (str lefts))))
 
           ;; (.. js/window -console (log "foo")) => (.. js/window -console)
           (and first? (some-> prefix zip/up zip/leftmost zip/node str (= "..")))
-          (with-type :.. (let [lefts (-> prefix zip/up zip/lefts)]
-                           (if (<= (count lefts) 2)
-                             (str (last lefts))
-                             (str lefts))))
+          (with-type :.. true (let [lefts (-> prefix zip/up zip/lefts)]
+                                (if (<= (count lefts) 2)
+                                  (str (last lefts))
+                                  (str lefts))))
 
           ;; simple (.foo bar)
           (and first? dot-fn?)
-          (with-type :. (some-> prefix zip/right zip/node str)))))))
+          (with-type :. true (some-> prefix zip/right zip/node str)))))))
 
 (def global-expr-re #"^js/((?:[^\.]+\.)*)([^\.]*)$")
 (def dot-dash-prefix-re #"^\.-?")
@@ -128,7 +152,6 @@
   those properties into candidates for completion."
   [symbol context]
   (if (starts-with? symbol "js/")
-
     ;; symbol is a global like js/console or global/property like js/console.log
     (let [[_ dotted-obj-expr prefix] (re-matches global-expr-re symbol)
           obj-expr-parts (keep not-empty (split dotted-obj-expr dot-prefix-re))
@@ -138,6 +161,7 @@
           obj-expr (cl-format nil "(this-as this ~[this~:;(.. this ~{-~A~^ ~})~])"
                               (count obj-expr-parts) obj-expr-parts)]
       {:prefix prefix
+       :js-interop? true
        :prepend-to-candidate (str "js/" dotted-obj-expr)
        :vars-have-dashes? false
        :obj-expr obj-expr
@@ -181,16 +205,20 @@
   are :extra-metadata :sort-order and :plain-candidates."
   [cljs-eval-fn symbol {:keys [ns context]}]
   (when (and symbol (not= "nil" symbol))
-    (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type]}
+    (let [{:keys [prefix prepend-to-candidate vars-have-dashes? obj-expr type js-interop?]}
           (analyze-symbol-and-context symbol context)
           global? (#{:global} type)]
-      (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
-        (if (seq error)
-          (when debug?
-            (binding [*out* *err*]
-              (println "[suitable] error in suitable cljs-completions:" error)))
-          (for [{:keys [name type]} properties
-                :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
-                      candidate (str prepend-to-candidate maybe-dash name)]
-                :when (starts-with? candidate symbol)]
-            {:type type :candidate candidate :ns (if global? "js" obj-expr)}))))))
+      ;; ONLY evaluate forms that are detected as js interop,
+      ;; it's Suitable's promise per its README.
+      ;; There was issue #30 that broke this expectation at some point.
+      (when js-interop?
+        (when-let [{error :error properties :value} (and obj-expr (js-properties-of-object cljs-eval-fn ns obj-expr prefix))]
+          (if (seq error)
+            (when debug?
+              (binding [*out* *err*]
+                (println "[suitable] error in suitable cljs-completions:" error)))
+            (for [{:keys [name type]} properties
+                  :let [maybe-dash (if (and vars-have-dashes? (= "var" type)) "-" "")
+                        candidate (str prepend-to-candidate maybe-dash name)]
+                  :when (starts-with? candidate symbol)]
+              {:type type :candidate candidate :ns (if global? "js" obj-expr)})))))))
