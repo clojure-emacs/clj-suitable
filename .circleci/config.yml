@@ -5,30 +5,51 @@ version: 2.1
 defaults: &defaults
   working_directory: ~/repo
 
+env_defaults: &env_defaults
+  LEIN_ROOT: "true"   # we intended to run lein as root
+  # JVM_OPTS:
+  # - limit the maximum heap size to prevent out of memory errors
+  # - print stacktraces to console
+  JVM_OPTS: >
+    -Xmx3200m
+    -Dclojure.main.report=stderr
+
 # Runners for OpenJDK 8/11/16
 
 executors:
+  # JDK 8 is preferred for deployments (https://github.com/benedekfazekas/mranderson/issues/57)
+  # Parallelism is disabled, at least for now (https://github.com/benedekfazekas/mranderson/issues/56)
+  openjdk8_deploy:
+    docker:
+      - image: circleci/clojure:openjdk-8-lein-2.9.1-node
+    <<: *defaults
+    environment:
+      LEIN_JVM_OPTS: -Dmranderson.internal.no-parallelism=true
+      <<: *env_defaults
   openjdk8:
     docker:
       - image: circleci/clojure:openjdk-8-lein-2.9.1-node
     environment:
-      LEIN_ROOT: "true"   # we intended to run lein as root
-      JVM_OPTS: -Xmx3200m # limit the maximum heap size to prevent out of memory errors
+      <<: *env_defaults
     <<: *defaults
   openjdk11:
     docker:
       - image: circleci/clojure:openjdk-11-lein-2.9.1-node
     environment:
-      LEIN_ROOT: "true"   # we intended to run lein as root
-      JVM_OPTS: -Xmx3200m --illegal-access=deny # forbid reflective access
+      <<: *env_defaults
     <<: *defaults
   openjdk16:
     docker:
       - image: circleci/clojure:openjdk-16-lein-2.9.5-buster-node
     environment:
-      LEIN_ROOT: "true"   # we intended to run lein as root
-      JVM_OPTS: -Xmx3200m --illegal-access=deny # forbid reflective access
+      <<: *env_defaults
     <<: *defaults
+  openjdk17:
+    docker:
+      - image: circleci/clojure:openjdk-17-lein-2.9.5-buster-node
+    <<: *defaults
+    environment:
+      <<: *env_defaults
 
 commands:
   with_cache:
@@ -95,6 +116,14 @@ jobs:
           cache_version: "1.10"
           steps: << parameters.steps >>
 
+  deploy:
+    executor: openjdk8_deploy
+    steps:
+      - checkout
+      - run:
+         name: Deploy
+         command: |
+           lein with-profile -user,+deploy run -m deploy-release make deploy
 
   test_code:
     description: |
@@ -132,7 +161,7 @@ workflows:
               # - cider-nrepl
               # - node.js runtimes
               clojure_version: ["1.8", "1.9", "1.10", "1.11", "master"]
-              jdk_version: [openjdk8, openjdk11, openjdk16]
+              jdk_version: [openjdk8, openjdk11, openjdk16, openjdk17]
       - util_job:
           name: Code Linting
           steps:
@@ -144,3 +173,12 @@ workflows:
                 name: Running Eastwood
                 command: |
                   make eastwood
+      - deploy:
+          requires:
+            - test_code
+            - "Code Linting"
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+(-alpha\d*)?(-beta\d*)?$/
