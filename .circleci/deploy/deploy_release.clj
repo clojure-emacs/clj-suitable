@@ -24,7 +24,7 @@
           (println (format "The `%s` marker was not found in %s." release-marker tag))
           (System/exit 1))
         (let [version (make-version tag)
-              version-file (io/file "resources" "cider" "nrepl" "version.edn")]
+              version-file (io/file "resources" "suitable" "version.edn")]
           (assert (.exists version-file))
           (spit version-file (pr-str version))
           (apply println "Executing" *command-line-args*)

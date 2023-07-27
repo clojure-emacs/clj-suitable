@@ -17,15 +17,6 @@ env_defaults: &env_defaults
 # Runners for OpenJDK 8/11/16
 
 executors:
-  # JDK 8 is preferred for deployments (https://github.com/benedekfazekas/mranderson/issues/57)
-  # Parallelism is disabled, at least for now (https://github.com/benedekfazekas/mranderson/issues/56)
-  openjdk8_deploy:
-    docker:
-      - image: circleci/clojure:openjdk-8-lein-2.9.1-node
-    <<: *defaults
-    environment:
-      LEIN_JVM_OPTS: -Dmranderson.internal.no-parallelism=true
-      <<: *env_defaults
   openjdk8:
     docker:
       - image: circleci/clojure:openjdk-8-lein-2.9.1-node
@@ -117,7 +108,7 @@ jobs:
           steps: << parameters.steps >>
 
   deploy:
-    executor: openjdk8_deploy
+    executor: openjdk8
     steps:
       - checkout
       - run:
