@@ -162,6 +162,25 @@ suitable recognizes various ways how CLJS can access properties and methods, suc
 
 Also, direct global access is supported such as `js/console.log`. suitable will then figure out the expression that defines the "parent object" that the property / method we want to use belongs to. For the example above it would be `js/console`. The system then uses the [EcmaScript property descriptor API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) to enumerate the object members. Those are converted into completion candidates and send back to the tooling.
 
+## Development
+
+#### Local install
+
+```
+PROJECT_VERSION=0.5.0 make install
+```
+
+#### Releasing to Clojars
+
+Release to [clojars](https://clojars.org/) by tagging a new release:
+
+```
+git tag -a v0.5.0 -m "Release 0.5.0"
+git push --tags
+```
+
+The CI will take it from there.
+
 ## License
 
 This project is [MIT licensed](LICENSE).

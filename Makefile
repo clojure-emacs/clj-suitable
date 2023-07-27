@@ -23,11 +23,10 @@ eastwood:
 
 lint: kondo eastwood
 
-install: clean
+install: clean check-install-env
 	lein with-profile -user,-dev install
 
-# CLOJARS_USERNAME=$USER CLOJARS_PASSWORD=$(pbpaste) make deploy
-deploy: clean
+deploy: clean check-ci-env
 	lein with-profile -user,-dev deploy clojars
 
 # starts a figwheel repl with suitable enabled
@@ -41,3 +40,19 @@ nrepl-figwheel:
 # useful for development, see comment in src/dev/suitable/nrepl_.clj
 nrepl-shadow:
 	clojure -M:test:dev-shadow
+
+check-ci-env:
+ifndef CLOJARS_USERNAME
+	$(error CLOJARS_USERNAME is undefined)
+endif
+ifndef CLOJARS_PASSWORD
+	$(error CLOJARS_PASSWORD is undefined)
+endif
+ifndef CIRCLE_TAG
+	$(error CIRCLE_TAG is undefined. Please only perform deployments by publishing git tags. CI will do the rest.)
+endif
+
+check-install-env:
+ifndef PROJECT_VERSION
+	$(error Please set PROJECT_VERSION as an env var beforehand.)
+endif
