@@ -153,8 +153,18 @@ workflows:
               # - node.js runtimes
               clojure_version: ["1.8", "1.9", "1.10", "1.11", "master"]
               jdk_version: [openjdk8, openjdk11, openjdk16, openjdk17]
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+(-alpha\d*)?(-beta\d*)?$/
       - util_job:
           name: Code Linting
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+(-alpha\d*)?(-beta\d*)?$/
           steps:
             - run:
                 name: Running clj-kondo

@@ -23,13 +23,13 @@
            ;; for starting nrepl clj & cljs servers for live development
            :dev-figwheel {:extra-paths ["src/dev" "resources" "target"]
                           :extra-deps  {cider/piggieback          {:mvn/version "0.5.3"}
-                                        cider/cider-nrepl         {:mvn/version "0.31.0"}
+                                        cider/cider-nrepl         {:mvn/version "0.32.0"}
                                         com.bhauman/figwheel-main {:mvn/version "0.2.18"}}
                           :main-opts   ["-m" "suitable.nrepl-figwheel"]}
 
            :dev-shadow {:extra-paths ["src/dev" "resources" "target"]
                         :extra-deps  {cider/piggieback     {:mvn/version "0.5.3"}
-                                      cider/cider-nrepl    {:mvn/version "0.31.0"}
+                                      cider/cider-nrepl    {:mvn/version "0.32.0"}
                                       thheller/shadow-cljs {:mvn/version "2.24.1"}}
                         :main-opts   ["-m" "suitable.nrepl-shadow"]}
 
@@ -48,7 +48,7 @@
            :test {:extra-paths ["src/test" "resources"]
                   :extra-deps  {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
                                                            :sha     "209b64504cb3bd3b99ecfec7937b358a879f55c1"}
-                                cider/cider-nrepl         {:mvn/version "0.31.0"}
+                                cider/cider-nrepl         {:mvn/version "0.32.0"}
                                 cider/piggieback          {:mvn/version "0.5.3"}}
                   :jvm-opts    ["-Dclojure.main.report=stderr"]
                   :main-opts   ["-m" "cognitect.test-runner" "-d" "src/test"]}

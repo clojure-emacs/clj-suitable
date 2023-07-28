@@ -2,6 +2,8 @@
 
 ## master
 
+## 0.5.0 (2023-07-28)
+
 * [#30](https://github.com/clojure-emacs/clj-suitable/issues/30): don't run side-effects for pure-clojurescript (non-interop) `->` chains.
 
 ## 0.4.1 (2021-10-02)

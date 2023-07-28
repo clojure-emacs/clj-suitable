@@ -98,13 +98,13 @@ You can now start a figwheel repl via `clj -M:suitable` and use TAB to complete.
 
 First make sure that the [normal leiningen setup](https://figwheel.org/#setting-up-a-build-with-leiningen) works.
 
-Add `[org.rksm/suitable "0.4.1"]` to your dependencies vector.
+Add `[org.rksm/suitable "0.5.0"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
 ### Emacs CIDER
 
-`suitable` is used by CIDER's code completion middleware (as of CIDER 0.22.0), so no extra installation steps are required.
+`suitable` is used by CIDER's code completion middleware, so no extra installation steps are required.
 
 CIDER will always use the static code completion provided by suitable, regardless of the ClojureScript runtime.
 
