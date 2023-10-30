@@ -195,9 +195,9 @@
   "Returns a list of both keyword constants in the environment and
   language specific ones."
   [env]
-  ;; using namespace for backward compatibility with Clojure 1.8
-  ;; use qualified-keyword? at some point in the future
-  (concat language-keywords (filter namespace (keys (:cljs.analyzer/constant-table env)))))
+  (into language-keywords
+        (filter keyword?)
+        (keys (:cljs.analyzer/constant-table env))))
 
 ;; grabbing directly from cljs.analyzer.api
 

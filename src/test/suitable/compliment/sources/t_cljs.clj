@@ -219,6 +219,14 @@
                                        {:candidate ":require-macros" :type :keyword}))
                                 (set (completions ":re")))) "the completion should include ClojureScript-specific keywords."))
 
+  (testing "Local keyword"
+    (is (= '({:candidate ":one" :type :keyword})
+           (completions ":on" 'suitable.test-ns))))
+
+  (testing "Keyword from another namespace"
+    (is (= '({:candidate ":four" :type :keyword})
+           (completions ":fo" 'suitable.test-ns))))
+
   (testing "Local namespaced keyword"
     (is (= '({:candidate "::some-namespaced-keyword" :ns "suitable.test-ns" :type :keyword})
            (completions "::so" 'suitable.test-ns)))

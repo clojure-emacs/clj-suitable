@@ -9,6 +9,11 @@
 
 (def x ::some-namespaced-keyword)
 
+(def foo
+  {:one   "one"
+   :two   "two"
+   :three "three"})
+
 (defn issue-28
   []
   (str "https://github.com/clojure-emacs/cljs-tooling/issues/28"))
