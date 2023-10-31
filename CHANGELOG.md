@@ -2,7 +2,9 @@
 
 ## master
 
-- Expand completion for non-namespaced keywords.
+## 0.5.1 (2023-10-31)
+
+- [#41](https://github.com/clojure-emacs/clj-suitable/pull/41): Expand completion for non-namespaced keywords.
 
 ## 0.5.0 (2023-07-28)
 
