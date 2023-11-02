@@ -28,6 +28,7 @@
      (for [[i {:keys [_obj props]}] (map-indexed vector (properties-by-prototype js-obj))
            key (js-keys props)
            :when (and (not (get @seen key))
+                      (not (oget (oget props key) "enumerable"))
                       (or (empty? prefix)
                           (starts-with? key prefix)))]
        (let [prop (oget props key)]
