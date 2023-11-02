@@ -2,9 +2,9 @@
   (:require
    [cider.piggieback :as piggieback]
    [clojure.java.shell]
-   [clojure.test :as t :refer [deftest is run-tests testing]]
+   [clojure.test :as t :refer [are deftest is run-tests testing]]
    [nrepl.core :as nrepl]
-   [nrepl.server :refer [start-server default-handler]]
+   [nrepl.server :refer [default-handler start-server]]
    [suitable.complete-for-nrepl :as sut]
    [suitable.middleware :refer [wrap-complete-standalone]]))
 
@@ -103,7 +103,20 @@
                                :context ":same"})
             candidates (:completions response)]
         (is (= [{:ns "js/Object", :candidate ".keys" :type "function"}] candidates)
-            (pr-str response))))))
+            (pr-str response))))
+
+    (testing "make sure that enumerable items are filtered out"
+      (are [context candidates] (= candidates
+                                   (let [response   (message {:op      "complete"
+                                                              :ns      "cljs.user"
+                                                              :symbol  ".-"
+                                                              :context context})]
+                                     (:completions response)))
+        "(__prefix__ (js/String \"abc\"))"
+        [{:candidate ".-length", :ns "(js/String \"abc\")", :type "var"}]
+
+        "(-> (js/String \"abc\") __prefix__)"
+        [{:candidate ".-length", :ns "(-> (js/String \"abc\"))", :type "var"}]))))
 
 (deftest node-env?
   (is (false? (sut/node-env? nil)))

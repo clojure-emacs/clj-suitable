@@ -2,6 +2,8 @@
 
 ## master
 
+- [#39](https://github.com/clojure-emacs/clj-suitable/issues/39): Exclude enumerable from JS completion candidates.
+
 ## 0.5.1 (2023-10-31)
 
 - [#41](https://github.com/clojure-emacs/clj-suitable/pull/41): Expand completion for non-namespaced keywords.
