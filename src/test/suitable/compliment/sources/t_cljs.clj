@@ -239,7 +239,11 @@
            (completions "::test-dep/f" 'suitable.test-ns)))
 
     (is (= '({:candidate "::test-dep/dep-namespaced-keyword" :ns "suitable.test-ns-dep" :type :keyword})
-           (completions "::test-dep/d" 'suitable.test-ns)))))
+           (completions "::test-dep/d" 'suitable.test-ns))))
+
+  (testing "Referred namespaced keyword :as-alias"
+    (is (= '({:candidate "::aliased/kw" :type :keyword :ns "suitable.test-ns-alias"})
+           (completions "::aliased/k" 'suitable.test-ns)))))
 
 (deftest protocol-completions
   (testing "Protocol"
