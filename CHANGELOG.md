@@ -3,6 +3,7 @@
 ## master
 
 - [#39](https://github.com/clojure-emacs/clj-suitable/issues/39): Exclude enumerable from JS completion candidates.
+- Expand completion for keywords referred using `:as-alias`.
 
 ## 0.5.1 (2023-10-31)
 

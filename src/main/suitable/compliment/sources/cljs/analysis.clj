@@ -66,10 +66,11 @@
   "Returns a map {ns-name-or-alias ns-name} for the given namespace."
   [env ns]
   (when-let [found (find-ns env ns)]
-    (let [imports (:imports found)]
-      (->> (:requires found)
-           (filter #(not (contains? imports (key %))))
-           (into {})))))
+    (let [imports    (:imports found)
+          as-aliases (get found :as-aliases {})]
+      (into as-aliases
+            (remove #(contains? imports (key %)))
+            (:requires found)))))
 
 (defn macro-ns-aliases
   "Returns a map of [macro-ns-name-or-alias] to [macro-ns-name] for the given namespace."
@@ -172,7 +173,7 @@
     :refer :refer-macros :include-macros
     :refer-clojure :exclude
     :keys :strs :syms
-    :as :or
+    :as :as-alias :or
     :pre :post
     :let :when :while
 
