@@ -2,7 +2,7 @@
 
 ## master
 
-## 0.6.0 (2023-11-07)
+## 0.6.1 (2023-11-07)
 
 - [#44](https://github.com/clojure-emacs/clj-suitable/pull/44): More robust completion for referred keywords. If a given namespace is
   required using `:as-alias`, completion candidates were missing for some CLJS environments.
