@@ -2,6 +2,8 @@
 
 ## master
 
+- Consider `:reader-aliases` for completion referred keywords.
+
 ## 0.6.0 (2023-11-05)
 
 - [#39](https://github.com/clojure-emacs/clj-suitable/issues/39): Exclude enumerable from JS completion candidates.
