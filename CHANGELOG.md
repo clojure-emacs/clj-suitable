@@ -2,6 +2,8 @@
 
 ## master
 
+* [#45](https://github.com/clojure-emacs/clj-suitable/issues/45): don't exclude enumerable properties from `Object`.
+
 ## 0.6.1 (2023-11-07)
 
 - [#44](https://github.com/clojure-emacs/clj-suitable/pull/44): More robust completion for referred keywords. If a given namespace is

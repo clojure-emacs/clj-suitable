@@ -105,7 +105,7 @@
         (is (= [{:ns "js/Object", :candidate ".keys" :type "function"}] candidates)
             (pr-str response))))
 
-    (testing "make sure that enumerable items are filtered out"
+    (testing "enumerable items are filtered out"
       (are [context candidates] (= candidates
                                    (let [response   (message {:op      "complete"
                                                               :ns      "cljs.user"
@@ -116,7 +116,19 @@
         [{:candidate ".-length", :ns "(js/String \"abc\")", :type "var"}]
 
         "(-> (js/String \"abc\") __prefix__)"
-        [{:candidate ".-length", :ns "(-> (js/String \"abc\"))", :type "var"}]))))
+        [{:candidate ".-length", :ns "(-> (js/String \"abc\"))", :type "var"}]
+
+        "(__prefix__ #js [1 2 3])"
+        []
+
+        "(__prefix__ (array 1 2 3))"
+        [{:candidate ".-length", :ns "(array 1 2 3)", :type "var"}]
+
+        "(__prefix__ (js/Array. 1 2 3))"
+        [{:candidate ".-length", :ns "(js/Array. 1 2 3)", :type "var"}]
+
+        "(__prefix__ (js/Set. (js/Array. 1 2 3)))"
+        [{:candidate ".-size", :ns "(js/Set. (js/Array. 1 2 3))", :type "var"}]))))
 
 (deftest node-env?
   (is (false? (sut/node-env? nil)))

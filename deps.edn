@@ -44,14 +44,14 @@
                         :main-opts   ["-m" "figwheel.main" "-b" "fig"]
                         :extra-deps  {com.bhauman/figwheel-main {:mvn/version "0.2.18"}}}
 
-           ;; tests
            :test {:extra-paths ["src/test" "resources"]
-                  :extra-deps  {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
-                                                           :sha     "209b64504cb3bd3b99ecfec7937b358a879f55c1"}
-                                cider/cider-nrepl         {:mvn/version "0.32.0"}
+                  :extra-deps  {cider/cider-nrepl         {:mvn/version "0.32.0"}
                                 cider/piggieback          {:mvn/version "0.5.3"}}
-                  :jvm-opts    ["-Dclojure.main.report=stderr"]
-                  :main-opts   ["-m" "cognitect.test-runner" "-d" "src/test"]}
+                  :jvm-opts    ["-Dclojure.main.report=stderr"]}
+
+           :test-runner {:extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                                                 :sha     "209b64504cb3bd3b99ecfec7937b358a879f55c1"}}
+                         :main-opts  ["-m" "cognitect.test-runner" "-d" "src/test"]}
 
            ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
            :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"

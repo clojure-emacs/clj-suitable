@@ -28,7 +28,10 @@
      (for [[i {:keys [_obj props]}] (map-indexed vector (properties-by-prototype js-obj))
            key (js-keys props)
            :when (and (not (get @seen key))
-                      (not (oget (oget props key) "enumerable"))
+                      (if (or (= "[object String]" (js/Object.prototype.toString.call js-obj))
+                              (js/Array.isArray js-obj))
+                        (not (oget (oget props key) "enumerable"))
+                        true)
                       (or (empty? prefix)
                           (starts-with? key prefix)))]
        (let [prop (oget props key)]
