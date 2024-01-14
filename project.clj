@@ -125,6 +125,8 @@ Distributed under the Eclipse Public License either version 1.0 or (at your opti
       {:keys [profiles dependencies resource-paths source-paths]} (parse-deps-edn f f)]
   (defproject org.rksm/suitable (or (not-empty (System/getenv "PROJECT_VERSION"))
                                     "0.0.0")
+    :license {:name "MIT"
+              :url "https://opensource.org/licenses/MIT"}
     :source-paths ~source-paths
     :resource-paths ~resource-paths
     :dependencies ~dependencies

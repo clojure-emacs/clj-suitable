@@ -2,6 +2,8 @@
 
 ## master
 
+# 0.6.2 (2033-01-14)
+
 * [#45](https://github.com/clojure-emacs/clj-suitable/issues/45): don't exclude enumerable properties from `Object`.
 
 ## 0.6.1 (2023-11-07)
