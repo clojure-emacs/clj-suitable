@@ -13,7 +13,7 @@ clean:
 	lein with-profile -user clean
 
 test: clean
-	clojure -A:test:$(VERSION) -d src/test
+	clojure -M:test:test-runner:$(VERSION)
 
 kondo:
 	clojure -M:dev-figwheel:fig-repl:dev-shadow:test:kondo
