@@ -47,10 +47,10 @@
                                                                  :sha     "3f288f1f16d167723ad87cc35b1dfee3c1681e10"}}
                          :main-opts  ["-m" "cognitect.test-runner" "-d" "src/test"]}
 
-           ;; build a jar, https://juxt.pro/blog/posts/pack-maven.html
-           :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
-                                                :sha     "2769a6224bfb938e777906ea311b3daf7d2220f5"}}
-                  :main-opts  ["-m"]}
+           ;; build/install/deploy the jar, see build.clj
+           :build {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.14"}
+                                slipset/deps-deploy           {:mvn/version "0.2.5"}}
+                   :ns-default build}
 
            :kondo
            {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2026.05.25"}}
