@@ -1,4 +1,6 @@
 .cljs_*_repl/
+.clj-kondo/.cache/
+.eastwood
 .nrepl-port
 pom.xml
 /.calva/output-window/*.calva-repl
