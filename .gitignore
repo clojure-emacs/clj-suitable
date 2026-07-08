@@ -2,6 +2,7 @@
 .clj-kondo/.cache/
 .eastwood
 .nrepl-port
+/node_modules/
 pom.xml
 /.calva/output-window/*.calva-repl
 /.cljs_nashorn_repl/

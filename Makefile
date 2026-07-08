@@ -1,4 +1,4 @@
-.PHONY: clean test install deploy nrepl fig-repl kondo eastwood lint
+.PHONY: clean test shadow-test install deploy nrepl fig-repl kondo eastwood lint
 
 VERSION ?= 1.12
 
@@ -13,6 +13,12 @@ clean:
 
 test: clean
 	clojure -M:test:test-runner:$(VERSION)
+
+# shadow-cljs integration test - needs JDK 21 and a Node runtime (installs the
+# `ws` package from package.json first).
+shadow-test:
+	npm install
+	clojure -M:shadow-test
 
 kondo:
 	clojure -M:dev-figwheel:fig-repl:dev-shadow:test:kondo

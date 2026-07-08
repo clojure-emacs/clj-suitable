@@ -7,6 +7,7 @@
 - Drop the ancient Clojure 1.8/1.9/1.10 rows from the CI matrix; test against 1.11, 1.12 and master instead.
 - Migrate CI from CircleCI to GitHub Actions.
 - Replace the Leiningen/`lein-git-down` build with a `deps.edn`-native `tools.build` build (see `build.clj`).
+- Add a shadow-cljs integration test covering dynamic completion over a real Node runtime.
 
 ## 0.6.2 (2024-01-14)
 

@@ -47,6 +47,15 @@
                                                                  :sha     "3f288f1f16d167723ad87cc35b1dfee3c1681e10"}}
                          :main-opts  ["-m" "cognitect.test-runner" "-d" "src/test"]}
 
+           ;; shadow-cljs integration test - needs JDK 21 and a Node runtime with
+           ;; the `ws` npm package (npm install). Kept separate from :test-runner
+           ;; so the regular matrix doesn't try to load shadow-cljs.
+           :shadow-test {:extra-paths ["src/test-integration" "resources"]
+                         :extra-deps  {thheller/shadow-cljs      {:mvn/version "3.4.11"}
+                                       com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                                                  :sha     "3f288f1f16d167723ad87cc35b1dfee3c1681e10"}}
+                         :main-opts   ["-m" "cognitect.test-runner" "-d" "src/test-integration"]}
+
            ;; build/install/deploy the jar, see build.clj
            :build {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.14"}
                                 slipset/deps-deploy           {:mvn/version "0.2.5"}}

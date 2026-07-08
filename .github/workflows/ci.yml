@@ -79,9 +79,40 @@ jobs:
       - name: Eastwood
         run: make eastwood
 
+  shadow-test:
+    name: shadow-cljs integration test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # shadow-cljs 3.x requires JDK 21.
+          java-version: 21
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            .cpcache
+          key: deps-${{ hashFiles('deps.edn') }}
+          restore-keys: deps-
+      # the shadow-cljs Node runtime needs the `ws` package (see package.json)
+      - name: Install Node dependencies
+        run: npm install
+      - name: Run shadow-cljs integration test
+        run: clojure -M:shadow-test
+
   deploy:
     name: Deploy to Clojars
-    needs: [test, lint]
+    needs: [test, lint, shadow-test]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
