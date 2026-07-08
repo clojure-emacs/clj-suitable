@@ -2,6 +2,11 @@
 
 ## master
 
+- Adapt to piggieback 0.7.0's delegating repl-env so Node.js dynamic completion keeps working.
+- Modernize dependencies (ClojureScript 1.12, compliment 0.8.0, cider-nrepl 0.61.0, shadow-cljs 3.x and more).
+- Drop the ancient Clojure 1.8/1.9/1.10 rows from the CI matrix; test against 1.11, 1.12 and master instead.
+- Migrate CI from CircleCI to GitHub Actions.
+
 # 0.6.2 (2033-01-14)
 
 * [#45](https://github.com/clojure-emacs/clj-suitable/issues/45): don't exclude enumerable properties from `Object`.
