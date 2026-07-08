@@ -1,0 +1,9 @@
+{
+  "name": "clj-suitable",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Node dependencies for the shadow-cljs integration test (see src/test-integration).",
+  "devDependencies": {
+    "ws": "^8.18.0"
+  }
+}
