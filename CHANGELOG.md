@@ -6,6 +6,7 @@
 - Modernize dependencies (ClojureScript 1.12, compliment 0.8.0, cider-nrepl 0.61.0, shadow-cljs 3.x and more).
 - Drop the ancient Clojure 1.8/1.9/1.10 rows from the CI matrix; test against 1.11, 1.12 and master instead.
 - Migrate CI from CircleCI to GitHub Actions.
+- Replace the Leiningen/`lein-git-down` build with a `deps.edn`-native `tools.build` build (see `build.clj`).
 
 # 0.6.2 (2033-01-14)
 

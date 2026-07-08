@@ -10,7 +10,6 @@ clean:
 		out \
 		.cljs_node_repl \
 		.rebel_readline_history
-	lein with-profile -user clean
 
 test: clean
 	clojure -M:test:test-runner:$(VERSION)
@@ -23,11 +22,11 @@ eastwood:
 
 lint: kondo eastwood
 
-install: clean check-install-env
-	lein with-profile -user,-dev install
+install: check-install-env
+	clojure -T:build install
 
-deploy: clean check-ci-env
-	lein with-profile -user,-dev deploy clojars
+deploy: check-ci-env
+	clojure -T:build deploy
 
 # starts a figwheel repl with suitable enabled
 fig-repl:
