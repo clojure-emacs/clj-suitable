@@ -3,7 +3,7 @@
 [![CI](https://github.com/clojure-emacs/clj-suitable/actions/workflows/ci.yml/badge.svg)](https://github.com/clojure-emacs/clj-suitable/actions/workflows/ci.yml)
 [![Clojars Project](https://img.shields.io/clojars/v/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 [![cljdoc badge](https://cljdoc.org/badge/org.rksm/suitable)](https://cljdoc.org/d/org.rksm/suitable/CURRENT)
-[![downloads badge](https://versions.deps.co/org.rksm/suitable/downloads.svg)](https://clojars.org/org.rksm/suitable)
+[![downloads badge](https://img.shields.io/clojars/dt/org.rksm/suitable.svg)](https://clojars.org/org.rksm/suitable)
 
 `suitable` provides static and dynamic code completion for ClojureScript tools.
 
