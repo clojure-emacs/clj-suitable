@@ -17,6 +17,13 @@ jobs:
       matrix:
         jdk: [11, 17, 21]
         clojure: ['1.11', '1.12', 'master']
+        exclude:
+          # ClojureScript 1.12+ bundles a Closure Compiler that requires JDK 21,
+          # so only the 1.11 line (ClojureScript 1.11) runs on the older JDKs.
+          - {jdk: 11, clojure: '1.12'}
+          - {jdk: 17, clojure: '1.12'}
+          - {jdk: 11, clojure: 'master'}
+          - {jdk: 17, clojure: 'master'}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
