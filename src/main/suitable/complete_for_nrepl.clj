@@ -108,13 +108,28 @@
           {:value result})
         (catch Exception e {:error e})))))
 
-(defn node-env?
-  "Returns true iff RENV is a NodeEnv or more precisely a piggiebacked delegating
-  NodeEnv. Since the renv is wrapped we can't just compare the type but have to
-  do some string munging according to
-  `cider.piggieback/generate-delegating-repl-env`."
+(defn- unwrap-repl-env
+  "Piggieback 0.7.0+ stores the repl-env wrapped in a private `DelegatingReplEnv`
+  and exposes the wrapped env via `cider.piggieback.cljs/get-repl-env`. When that
+  accessor is available and applies, we use it to recover the real env; otherwise
+  (older piggieback, or an already-unwrapped env) we return `renv` untouched."
   [renv]
-  (let [normalize (fn [^Class c]
+  (or (when-let [get-repl-env (try
+                                (requiring-resolve 'cider.piggieback.cljs/get-repl-env)
+                                (catch Exception _ nil))]
+        (try
+          (get-repl-env renv)
+          (catch Exception _ nil)))
+      renv))
+
+(defn node-env?
+  "Returns true iff RENV is a NodeEnv. Piggieback wraps the repl-env in a
+  delegating env, so we unwrap it first. Older piggieback releases exposed the
+  wrapped env only through a generated class name, so we also strip that
+  decoration before comparing."
+  [renv]
+  (let [renv (unwrap-repl-env renv)
+        normalize (fn [^Class c]
                     (-> c
                         .getName
                         (string/replace "." "_")))
@@ -124,7 +139,8 @@
         actual (some-> renv
                        class
                        normalize
-                       ;; Examples of what has to be stripped away:
+                       ;; Older piggieback embedded the wrapped env's type in a
+                       ;; generated class name that has to be stripped, e.g.
                        ;; user$eval4016$__GT_Delegatingcljs_repl_node_NodeEnv__4018
                        ;; user$eval4016$__GT_Delegatingcljs_repl_node_NodeEnv__4018@56478522
                        (string/replace #".*Delegating" "")

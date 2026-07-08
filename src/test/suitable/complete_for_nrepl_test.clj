@@ -1,7 +1,9 @@
 (ns suitable.complete-for-nrepl-test
   (:require
    [cider.piggieback :as piggieback]
+   [cider.piggieback.cljs :as piggieback-cljs]
    [clojure.java.shell]
+   [clojure.string :as string]
    [clojure.test :as t :refer [are deftest is run-tests testing]]
    [nrepl.core :as nrepl]
    [nrepl.server :refer [default-handler start-server]]
@@ -78,7 +80,8 @@
             explanation (pr-str response)]
         (is (= "cljs.user" (:ns response))
             explanation)
-        (is (= ["#js{}"] (:value response))
+        ;; ClojureScript 1.11 prints `#js{}` while 1.12 prints `#js {}`
+        (is (= ["#js{}"] (mapv #(string/replace % #"#js\s+" "#js") (:value response)))
             explanation)
         (is (= #{"done"} (:status response))
             explanation)))))
@@ -134,8 +137,8 @@
   (is (false? (sut/node-env? nil)))
   (is (false? (sut/node-env? 42)))
   (is (sut/node-env? (cljs.repl.node/repl-env)))
-  ;; Exercise `piggieback/generate-delegating-repl-env` because it's mentioned in the docstring of `sut/node-env?`:
-  (is (sut/node-env? (#'piggieback/generate-delegating-repl-env (cljs.repl.node/repl-env)))))
+  ;; a node env wrapped in piggieback's delegating repl-env must still be detected
+  (is (sut/node-env? (piggieback-cljs/delegating-repl-env (cljs.repl.node/repl-env)))))
 
 (comment
   (run-tests))
