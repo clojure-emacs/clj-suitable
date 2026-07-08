@@ -131,7 +131,7 @@ Distributed under the Eclipse Public License either version 1.0 or (at your opti
     :resource-paths ~resource-paths
     :dependencies ~dependencies
     :profiles ~profiles
-    :plugins [[reifyhealth/lein-git-down "0.4.0"]]
+    :plugins [[reifyhealth/lein-git-down "0.4.1"]]
     :middleware [lein-git-down.plugin/inject-properties]
     :git-down ~(deref repo-mapping)
     :repositories ~(->> @git-hosts
