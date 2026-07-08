@@ -60,7 +60,4 @@
 
            :eastwood
            {:main-opts  ["-m" "eastwood.lint" {:config-files ["eastwood.clj"]}]
-            :extra-deps {jonase/eastwood         {:mvn/version "1.4.3"}}}
-
-           :deploy
-           {:extra-paths [".circleci/deploy"]}}}
+            :extra-deps {jonase/eastwood         {:mvn/version "1.4.3"}}}}}

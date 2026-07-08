@@ -48,8 +48,8 @@ endif
 ifndef CLOJARS_PASSWORD
 	$(error CLOJARS_PASSWORD is undefined)
 endif
-ifndef CIRCLE_TAG
-	$(error CIRCLE_TAG is undefined. Please only perform deployments by publishing git tags. CI will do the rest.)
+ifndef PROJECT_VERSION
+	$(error PROJECT_VERSION is undefined. Deployments are published from git tags by CI - see .github/workflows/ci.yml.)
 endif
 
 check-install-env:
