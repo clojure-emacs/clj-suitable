@@ -1,4 +1,4 @@
-(ns suitable.compliment.sources.t-cljs
+(ns suitable.compliment.sources.cljs-test
   (:require
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -141,7 +141,7 @@
            (completions "bla")
            (completions "bla" 'suitable.test-ns)))
     (is (= '({:candidate "foo-in-dep" :ns "suitable.test-ns-dep" :type :function})
-           (completions "foo" 'suitable.test-ns))))
+           (completions "foo-in" 'suitable.test-ns))))
 
   (testing "Local fn"
     (is (= '({:candidate "test-public-fn" :ns "suitable.test-ns" :type :function})
@@ -304,7 +304,7 @@
   (testing "Extra metadata: referred var :arglists"
     (binding [*extra-metadata* #{:arglists}]
       (is (= '({:candidate "foo-in-dep" :ns "suitable.test-ns-dep" :arglists ("[foo]") :type :function})
-             (completions "foo" 'suitable.test-ns)))))
+             (completions "foo-in" 'suitable.test-ns)))))
 
   (testing "Extra metadata: referred macro :arglists"
     (binding [*extra-metadata* #{:arglists}]
