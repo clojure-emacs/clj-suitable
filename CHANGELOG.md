@@ -2,6 +2,8 @@
 
 ## master
 
+## 0.7.0 (2026-07-12)
+
 - Adapt to piggieback 0.7.0's delegating repl-env so Node.js dynamic completion keeps working.
 - Modernize dependencies (ClojureScript 1.12, compliment 0.8.0, cider-nrepl 0.61.0, shadow-cljs 3.x and more).
 - Drop the ancient Clojure 1.8/1.9/1.10 rows from the CI matrix; test against 1.11, 1.12 and master instead.
