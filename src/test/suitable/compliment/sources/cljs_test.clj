@@ -172,8 +172,11 @@
   (testing "Excluded cljs.core macro"
     (is (= '()
            (completions "whil" 'suitable.test-ns)))
+    ;; `cljs.core/whil` also fuzzily matches take-while/drop-while (functions),
+    ;; so filter to macros to keep the exclusion assertion focused
     (is (= '({:candidate "cljs.core/while" :ns "cljs.core" :type :macro})
-           (completions "cljs.core/whil" 'suitable.test-ns))))
+           (->> (completions "cljs.core/whil" 'suitable.test-ns)
+                (filter #(= :macro (:type %)))))))
 
   (testing "Namespace-qualified macro"
     (is (= '()
@@ -252,9 +255,10 @@
               (completions "II"))))
 
   (testing "Protocol fn"
-    (is (set= '({:candidate "-with-meta" :ns "cljs.core" :type :protocol-function}
-                {:candidate "-write" :ns "cljs.core" :type :protocol-function})
-              (completions "-w")))))
+    ;; a bare `-w` fuzzily matches every protocol fn with a `-w` segment, so use
+    ;; a specific prefix here (fuzzy breadth is covered in `fuzzy-matching`)
+    (is (= '({:candidate "-with-meta" :ns "cljs.core" :type :protocol-function})
+           (completions "-with-me")))))
 
 (deftest record-completions
   (testing "Record"
@@ -266,6 +270,34 @@
     (is (set= '({:candidate "ES6Iterator" :ns "cljs.core" :type :type}
                 {:candidate "ES6IteratorSeq" :ns "cljs.core" :type :type})
               (completions "ES6I")))))
+
+(deftest fuzzy-matching
+  (testing "vars match fuzzily with `-` as separator"
+    (is (set= '({:candidate "unchecked-add" :ns "cljs.core" :type :function}
+                {:candidate "unchecked-add-int" :ns "cljs.core" :type :function})
+              (completions "u-add")))
+    ;; the separator in the prefix can be skipped in the candidate
+    (is (set= '({:candidate "cond->" :ns "cljs.core" :type :macro}
+                {:candidate "cond->>" :ns "cljs.core" :type :macro})
+              (->> (completions "cond>" 'suitable.test-ns)
+                   (filter #(= :macro (:type %))))))
+    ;; a single fuzzy prefix can span both a function and a macro
+    (is (set= '({:candidate "make-array" :ns "cljs.core" :type :function}
+                {:candidate "my-add" :ns "suitable.test-macros" :type :macro})
+              (completions "m-a" 'suitable.test-ns))))
+
+  (testing "namespaces match fuzzily with `.` as separator"
+    (is (set= '({:candidate "suitable.test-ns" :type :namespace}
+                {:candidate "suitable.test-ns-dep" :type :namespace})
+              (completions "su.te"))))
+
+  (testing "matching only resumes after a separator, like compliment"
+    ;; there is no `-` in `IIndexed` for the prefix to resume at, so `IIdx`
+    ;; does not fuzzily match it (this mirrors compliment's segment semantics)
+    (is (= '() (completions "IIdx"))))
+
+  (testing "keywords stay prefix-only (no fuzzy), like compliment"
+    (is (= '() (completions ":rm")))))
 
 (deftest extra-metadata
   (testing "Extra metadata: namespace :doc"
