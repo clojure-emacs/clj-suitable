@@ -13,9 +13,16 @@
     (binding [cljs-sources/*compiler-env* (cljs-env/create-test-env)]
       (f))))
 
-(defn completions
+(defn completions*
+  "Raw candidates, including :priority."
   [prefix & [ns]]
   (cljs-sources/candidates prefix (some-> ns find-ns) nil))
+
+(defn completions
+  "Candidates with :priority stripped, so the bulk of the tests can focus on
+  :candidate/:type/:ns. Ranking is covered separately in the `ranking` deftest."
+  [prefix & [ns]]
+  (map #(dissoc % :priority) (completions* prefix ns)))
 
 (defn set=
   [coll1 coll2 & colls]
@@ -298,6 +305,24 @@
 
   (testing "keywords stay prefix-only (no fuzzy), like compliment"
     (is (= '() (completions ":rm")))))
+
+(deftest ranking
+  (letfn [(priority-of [pred cands] (:priority (first (filter pred cands))))]
+    (testing "a var in the current ns ranks first (priority 30)"
+      (is (= 30 (:priority (first (completions* "test-pu" 'suitable.test-ns))))))
+
+    (testing "a cljs.core var ranks just below (priority 31)"
+      (is (= 31 (priority-of #(= "map" (:candidate %)) (completions* "map")))))
+
+    (testing "namespaces rank below vars (priority 51)"
+      (is (= 51 (:priority (first (completions* "su.te"))))))
+
+    (testing "cljs.* / clojure.* namespaces rank above other namespaces (priority 50)"
+      (is (= 50 (priority-of #(= "cljs.core" (:candidate %)) (completions* "cljs.co")))))
+
+    (testing "keywords and special forms carry no priority (sink to the bottom)"
+      (is (nil? (:priority (first (completions* ":on" 'suitable.test-ns)))))
+      (is (nil? (:priority (first (completions* "thr"))))))))
 
 (deftest extra-metadata
   (testing "Extra metadata: namespace :doc"

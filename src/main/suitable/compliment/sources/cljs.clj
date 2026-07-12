@@ -282,12 +282,37 @@
   [x]
   (re-matches #"[^\/\:\.][^\/\:]+" x))
 
+(def ^:private base-priority
+  "Base `:priority` per candidate type (lower sorts first), mirroring
+  compliment's ordering. Keywords and special forms get no priority, so they
+  sink to the bottom just like in compliment."
+  {:function 32, :macro 32, :var 32, :protocol 32, :protocol-function 32
+   :record 32, :type 32
+   :namespace 51
+   :class 60})
+
+(defn- with-priority
+  "Attaches a compliment-style `:priority` to a candidate, relative to the ns the
+  completion was requested from: vars in the current ns rank first, then
+  `cljs.core`, and `cljs.*`/`clojure.*` namespaces rank above other namespaces."
+  [context-ns {:keys [type ns candidate] :as c}]
+  (if-let [base (base-priority type)]
+    (assoc c :priority
+           (cond
+             (and ns (= ns (str context-ns)))               30
+             (= ns "cljs.core")                             31
+             (and (= type :namespace)
+                  (re-find #"^(?:cljs|clojure)\." candidate)) 50
+             :else                                          base))
+    c))
+
 (def ^:dynamic *compiler-env* nil)
 
 (defn- candidates* [prefix context-ns]
   (->> (potential-candidates *compiler-env* context-ns prefix *extra-metadata*)
        (distinct-candidates)
-       (filter #(candidate-match? % prefix))))
+       (filter #(candidate-match? % prefix))
+       (map #(with-priority context-ns %))))
 
 (defn candidates
   "Returns a sequence of candidate data for completions matching the given
