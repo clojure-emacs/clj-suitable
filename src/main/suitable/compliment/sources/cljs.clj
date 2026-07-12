@@ -316,15 +316,35 @@
        (filter #(candidate-match? % prefix))
        (map #(with-priority context-ns %))))
 
-(defn- local-candidates
-  "Local bindings (from let/loop/fn/for/doseq/... forms, including
-  destructuring) visible at the completion point. This reuses compliment's own
-  extractor, which is purely structural and so works for ClojureScript too.
-  `context` is the parsed context compliment hands to a source; we also accept a
-  raw string for callers that don't pre-parse it."
-  [prefix ns context]
-  (let [parsed (if (string? context) (ctx/cache-context context) context)]
-    (local-bindings/candidates prefix ns parsed)))
+(defn- require-refer-ns
+  "If the parsed `context` places the cursor inside a
+  `(ns ... (:require [some.ns :refer [__prefix__]]))` clause (or the `:use`/
+  `:only` equivalent), returns the symbol of that namespace, otherwise nil.
+  Ported from compliment's vars source."
+  [context]
+  (let [[refer-list libspec require-clause ns-form] context]
+    (when (and (sequential? (:form refer-list))
+               (= (first (:form ns-form)) 'ns)
+               (or (and (= (first (:form require-clause)) :require)
+                        (= (second (:form libspec)) :refer))
+                   (and (= (first (:form require-clause)) :use)
+                        (= (second (:form libspec)) :only))))
+      (first (:form libspec)))))
+
+(defn- refer-candidates
+  "Candidates for a `:refer`/`:only` position: the public vars of `refer-ns`."
+  [context-ns refer-ns prefix]
+  (->> (ns-public-var-candidates *compiler-env* refer-ns *extra-metadata*)
+       (filter #(candidate-match? % prefix))
+       (map #(with-priority context-ns %))))
+
+(defn- first-item-in-list?
+  "Special forms are only relevant when the prefix is the first element of a list
+  (or when there's no context to tell). Ported from compliment."
+  [context]
+  (if-let [{:keys [form idx]} (first context)]
+    (and (list? form) (= idx 0))
+    true))
 
 (defn candidates
   "Returns a sequence of candidate data for completions matching the given
@@ -336,9 +356,19 @@
   (let [context-ns (try
                      (ns-name ns)
                      (catch Exception _
-                       nil))]
-    (concat (candidates* prefix context-ns)
-            (local-candidates prefix ns context))))
+                       nil))
+        ;; `context` is already parsed when we're called via compliment.core; we
+        ;; also accept a raw string for callers that don't pre-parse it.
+        parsed (if (string? context) (ctx/cache-context context) context)]
+    (if-let [refer-ns (require-refer-ns parsed)]
+      ;; inside a (:require [refer-ns :refer [__prefix__]]) clause -> that ns' publics
+      (refer-candidates context-ns refer-ns prefix)
+      (cond->> (concat (candidates* prefix context-ns)
+                       ;; compliment's local-bindings extractor is purely
+                       ;; structural, so it works unchanged for ClojureScript.
+                       (local-bindings/candidates prefix ns parsed))
+        (not (first-item-in-list? parsed))
+        (remove #(= :special-form (:type %)))))))
 
 (defn generate-docstring
   "Generates a docstring from a given var metadata.

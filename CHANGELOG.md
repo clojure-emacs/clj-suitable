@@ -5,6 +5,8 @@
 - Match static completion candidates fuzzily, like compliment does for Clojure (`pr-fn` completes `print-function`, `cs` completes `clojure.string`).
 - Rank static completion candidates with compliment-style priorities (current-ns vars first, then `cljs.core`, then namespaces and classes).
 - Complete local bindings (`let`/`loop`/`fn`/`for`/`doseq`/... including destructuring) from the surrounding form, like compliment does for Clojure.
+- Complete referred vars inside a `(:require [some.ns :refer [...]])` clause, scoped to that namespace.
+- Only offer special forms at the head of a list, matching compliment.
 
 ## 0.7.0 (2026-07-12)
 

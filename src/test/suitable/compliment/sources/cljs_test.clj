@@ -69,6 +69,19 @@
                           :var}]
         (is (every? (comp valid-types :type) all-candidates))))))
 
+(deftest special-form-context
+  (testing "special forms are offered at the head of a list"
+    (is (some #{{:candidate "throw" :ns "cljs.core" :type :special-form}}
+              (completions-in-context "thr" nil "(__prefix__ x)"))))
+
+  (testing "but not in argument position"
+    (is (not-any? #(= :special-form (:type %))
+                  (completions-in-context "thr" nil "(foo __prefix__)"))))
+
+  (testing "and are offered when there is no context (can't tell position)"
+    (is (some #{{:candidate "throw" :ns "cljs.core" :type :special-form}}
+              (completions "thr")))))
+
 (deftest special-form-completions
   (testing "Special form"
     (is (= '({:candidate "throw" :ns "cljs.core" :type :special-form})
@@ -348,6 +361,20 @@
   (testing "no locals without a binding context"
     (is (empty? (->> (completions-in-context "foo" 'suitable.test-ns "(__prefix__)")
                      (filter #(= :local (:type %))))))))
+
+(deftest require-refer-completion
+  (let [refer-ctx "(ns foo (:require [clojure.string :refer [__prefix__]]))"]
+    (testing "inside a :refer vector, completes the referred ns' public vars"
+      (is (some #{{:candidate "blank?" :ns "clojure.string" :type :function}}
+                (completions-in-context "bl" 'suitable.test-ns refer-ctx))))
+
+    (testing "and scopes to that ns - a cljs.core var must not leak in"
+      (is (not-any? #(= "bit-shift-left" (:candidate %))
+                    (completions-in-context "bi" 'suitable.test-ns refer-ctx))))
+
+    (testing "outside a :refer clause, normal completion still applies"
+      (is (some #(= "bit-shift-left" (:candidate %))
+                (completions-in-context "bit" 'suitable.test-ns "(__prefix__)"))))))
 
 (deftest extra-metadata
   (testing "Extra metadata: namespace :doc"
