@@ -2,7 +2,9 @@
   "Standalone auto-complete library based on cljs analyzer state"
   (:refer-clojure :exclude [meta])
   (:require [clojure.set :as set]
+            [compliment.context :as ctx]
             [compliment.sources :refer [defsource]]
+            [compliment.sources.local-bindings :as local-bindings]
             [compliment.utils :as utils :refer [*extra-metadata*]]
             [suitable.compliment.sources.cljs.analysis :as ana])
   (:import java.io.StringWriter))
@@ -314,18 +316,29 @@
        (filter #(candidate-match? % prefix))
        (map #(with-priority context-ns %))))
 
+(defn- local-candidates
+  "Local bindings (from let/loop/fn/for/doseq/... forms, including
+  destructuring) visible at the completion point. This reuses compliment's own
+  extractor, which is purely structural and so works for ClojureScript too.
+  `context` is the parsed context compliment hands to a source; we also accept a
+  raw string for callers that don't pre-parse it."
+  [prefix ns context]
+  (let [parsed (if (string? context) (ctx/cache-context context) context)]
+    (local-bindings/candidates prefix ns parsed)))
+
 (defn candidates
   "Returns a sequence of candidate data for completions matching the given
   prefix string and options.
 
   It requires the compliment.sources.cljs/*compiler-env* var to be dynamically
   bound to the ClojureScript compiler env."
-  [prefix ns _context]
+  [prefix ns context]
   (let [context-ns (try
                      (ns-name ns)
                      (catch Exception _
                        nil))]
-    (candidates* prefix context-ns)))
+    (concat (candidates* prefix context-ns)
+            (local-candidates prefix ns context))))
 
 (defn generate-docstring
   "Generates a docstring from a given var metadata.
