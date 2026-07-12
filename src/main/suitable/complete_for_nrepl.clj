@@ -264,7 +264,15 @@
           (let [result ((resolve 'shadow.cljs.devtools.api/cljs-eval) build-id code {:ns (symbol ns)})]
             {:error (some->> result :err str)
              :value (some->> result :results first edn/read-string)}))
-        ensure-loaded-fn (fn [_] nil)]
+        ;; shadow doesn't go through `ensure-suitable-cljs-is-loaded`, so load the
+        ;; introspection namespace here - once per session, not once per request
+        ;; (clojure-emacs/clj-suitable#6).
+        ensure-loaded-fn
+        (fn [session]
+          (when-not (::js-introspection-loaded @session)
+            (cljs-eval-fn (or (:ns msg) "cljs.user")
+                          (str "(require '" (suitable.js-completions/js-introspection-ns) ")"))
+            (swap! session assoc ::js-introspection-loaded true)))]
     (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
 
 (defn complete-for-nrepl

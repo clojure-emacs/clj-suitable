@@ -35,6 +35,19 @@
                        obj-expr prefix))))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(deftest js-properties-of-object-no-require
+  ;; https://github.com/clojure-emacs/clj-suitable/issues/6
+  (testing "does not re-require the introspection ns on every request"
+    (let [calls   (atom [])
+          eval-fn (fn [_ns code] (swap! calls conj code) {:value []})]
+      (sut/js-properties-of-object eval-fn "cljs.user" "js/console" "lo")
+      (is (= 1 (count @calls))
+          "makes exactly one eval call (the introspection call), not a require + call")
+      (is (not-any? #(clojure.string/includes? % "require") @calls)
+          "does not emit a (require ...)"))))
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ;; expr-for-parent-obj
 
 (deftest expr-for-parent-obj
