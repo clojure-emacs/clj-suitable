@@ -19,16 +19,13 @@
    (js-properties-of-object cljs-eval-fn ns obj-expr nil))
   ([cljs-eval-fn ns obj-expr prefix]
    (try
-     ;; :Not using a single expressiont / eval call here like
-     ;; (do (require ...) (runtime ...))
-     ;; to avoid
-     ;; Compile Warning:  Use of undeclared Var
-     ;;   suitable.js-introspection/property-names-and-types
+     ;; The introspection namespace is loaded once per session by the
+     ;; ensure-loaded step (see `suitable.complete-for-nrepl`), so we don't
+     ;; require it here on every completion request (clojure-emacs/clj-suitable#6).
      (let [template (str "("
                          (js-introspection-ns)
                          "/property-names-and-types ~A ~S)")
            code (cl-format nil template obj-expr prefix)]
-       (cljs-eval-fn ns (str "(require '" (js-introspection-ns) ")"))
        (cljs-eval-fn ns code))
      (catch Exception e {:error e}))))
 
