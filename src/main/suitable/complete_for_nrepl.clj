@@ -89,6 +89,22 @@
                               `(~sym ((keyword '~sym) ~vars)))))
            ~@body)))))
 
+(defn- non-recording-wrap
+  "A `cljs.repl` `:wrap` fn that evaluates a form without the `(set! *1 ...)`
+  history rotation the default wrapper does, so completion probes don't clobber
+  the user's *1/*2/*3 (see clojure-emacs/clj-suitable#5). Delegates to
+  `cljs.repl/init-wrap-fn` (which is exactly this) when available, otherwise
+  falls back to a plain pr-str wrapper."
+  [form]
+  (if-let [init-wrap-fn (resolve 'cljs.repl/init-wrap-fn)]
+    (init-wrap-fn form)
+    (if (and (seq? form)
+             ('#{ns require require-macros refer-global require-global
+                 use use-macros import refer-clojure}
+              (first form)))
+      identity
+      (fn [x] (list 'cljs.core/pr-str x)))))
+
 (defn- cljs-eval
   "Grabs the necessary compiler and repl envs from the message and uses the plain
   cljs.repl interface for evaluation. Returns a map with :value and :error. Note
@@ -99,7 +115,10 @@
         ;; aren't recognized correctly by the analyzer, suppress an undefined
         ;; var warining for `js-properties-of-object`
         ;; TODO only add when run as inline-dep??
-        opts (assoc opts :warnings {:undeclared-var false})]
+        opts (assoc opts
+                    :warnings {:undeclared-var false}
+                    ;; don't let completion probes rotate the REPL's *1/*2/*3
+                    :wrap non-recording-wrap)]
     (with-cljs-env cenv ns
       [cljs-eval-cljs-fn]
       (try
