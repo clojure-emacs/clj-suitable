@@ -24,6 +24,13 @@
   [prefix & [ns]]
   (map #(dissoc % :priority) (completions* prefix ns)))
 
+(defn completions-in-context
+  "Candidates given a surrounding context form (a string with the cursor's
+  symbol replaced by `__prefix__`), with :priority stripped."
+  [prefix ns context]
+  (map #(dissoc % :priority)
+       (cljs-sources/candidates prefix (some-> ns find-ns) context)))
+
 (defn set=
   [coll1 coll2 & colls]
   (apply = (set coll1) (set coll2) (map set colls)))
@@ -43,7 +50,7 @@
       (is (every? (comp string? :candidate) all-candidates)))
 
     (testing "All candidates that should have an :ns, do"
-      (let [filter-fn #(not (#{:import :keyword :namespace :class} (:type %)))
+      (let [filter-fn #(not (#{:import :keyword :namespace :class :local} (:type %)))
             filtered-candidates (filter filter-fn all-candidates)]
         (is (every? :ns filtered-candidates))))
 
@@ -51,6 +58,7 @@
       (let [valid-types #{:function
                           :class
                           :keyword
+                          :local
                           :macro
                           :namespace
                           :protocol
@@ -323,6 +331,23 @@
     (testing "keywords and special forms carry no priority (sink to the bottom)"
       (is (nil? (:priority (first (completions* ":on" 'suitable.test-ns)))))
       (is (nil? (:priority (first (completions* "thr"))))))))
+
+(deftest local-bindings-completion
+  (testing "let bindings are completed from the surrounding context"
+    (is (some #{{:candidate "foobar" :type :local}}
+              (completions-in-context "foo" 'suitable.test-ns "(let [foobar 1] __prefix__)"))))
+
+  (testing "fn arguments"
+    (is (some #{{:candidate "bravo" :type :local}}
+              (completions-in-context "br" 'suitable.test-ns "(fn [alpha bravo] __prefix__)"))))
+
+  (testing "map destructuring"
+    (is (some #{{:candidate "alpha" :type :local}}
+              (completions-in-context "al" 'suitable.test-ns "(let [{:keys [alpha beta]} m] __prefix__)"))))
+
+  (testing "no locals without a binding context"
+    (is (empty? (->> (completions-in-context "foo" 'suitable.test-ns "(__prefix__)")
+                     (filter #(= :local (:type %))))))))
 
 (deftest extra-metadata
   (testing "Extra metadata: namespace :doc"
