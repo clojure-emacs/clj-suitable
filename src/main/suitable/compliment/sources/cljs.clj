@@ -260,8 +260,16 @@
   (map first (vals (group-by :candidate candidates))))
 
 (defn- candidate-match?
-  [candidate prefix]
-  (.startsWith ^String (:candidate candidate) prefix))
+  "Tests whether a candidate matches the prefix. Mirrors compliment's per-kind
+  matching: fuzzy with `.` separators for namespaces and classes, fuzzy with `-`
+  separators for everything var-like (functions, macros, special forms, ...),
+  and plain prefix matching for keywords."
+  [candidate ^String prefix]
+  (let [^String cand (:candidate candidate)]
+    (case (:type candidate)
+      (:namespace :class) (utils/fuzzy-matches? prefix cand \.)
+      :keyword            (.startsWith cand prefix)
+      (utils/fuzzy-matches? prefix cand \-))))
 
 (defn plain-symbol?
   "Tests if prefix is a symbol with no / (qualified), : (keyword) and
