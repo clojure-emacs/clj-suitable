@@ -2,6 +2,9 @@
 
 ## master
 
+- Match static completion candidates fuzzily, like compliment does for Clojure (`pr-fn` completes `print-function`, `cs` completes `clojure.string`).
+- Rank static completion candidates with compliment-style priorities (current-ns vars first, then `cljs.core`, then namespaces and classes).
+
 ## 0.7.0 (2026-07-12)
 
 - Adapt to piggieback 0.7.0's delegating repl-env so Node.js dynamic completion keeps working.
