@@ -86,6 +86,18 @@
         (is (= #{"done"} (:status response))
             explanation)))))
 
+(deftest preserves-repl-history
+  ;; https://github.com/clojure-emacs/clj-suitable/issues/5
+  (with-repl-env (cljs.repl.node/repl-env)
+    (testing "a completion request must not clobber *1/*2/*3"
+      (is (= ["42"] (:value (message {:op :eval :code "42"}))))
+      (message {:op "complete"
+                :ns "cljs.user"
+                :symbol ".key"
+                :context "(__prefix__ js/Object)"})
+      (is (= ["42"] (:value (message {:op :eval :code "*1"})))
+          "*1 should still hold the last user value, not the completion's result"))))
+
 (deftest suitable-node
   (with-repl-env (cljs.repl.node/repl-env)
     (testing "js global completion"
