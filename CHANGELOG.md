@@ -7,6 +7,8 @@
 - Complete local bindings (`let`/`loop`/`fn`/`for`/`doseq`/... including destructuring) from the surrounding form, like compliment does for Clojure.
 - Complete referred vars inside a `(:require [some.ns :refer [...]])` clause, scoped to that namespace.
 - Only offer special forms at the head of a list, matching compliment.
+- [#5](https://github.com/clojure-emacs/clj-suitable/issues/5): don't clobber the REPL's `*1`/`*2`/`*3` when computing dynamic completions.
+- [#6](https://github.com/clojure-emacs/clj-suitable/issues/6): load the introspection namespace once per session instead of on every completion request.
 
 ## 0.7.0 (2026-07-12)
 
