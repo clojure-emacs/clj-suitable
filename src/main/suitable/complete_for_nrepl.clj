@@ -25,6 +25,12 @@
 
 (def debug? false)
 
+;; Tracks, per nREPL session, whether the introspection namespace has been loaded
+;; into the runtime. Must be a Var (not a keyword): nREPL's session middleware
+;; pushes every session-map key as a thread binding, which casts keys to Var - a
+;; keyword key there throws a ClassCastException.
+(def ^:dynamic *js-introspection-loaded* false)
+
 (defonce ^{:private true} resolved-vars (atom nil))
 
 (defn- resolve-vars!
@@ -52,6 +58,7 @@
                      (require 'cljs.env)
                      {:cljs-cenv-var (resolve 'cljs.env/*compiler*)
                       :cljs-ns-var (resolve 'cljs.analyzer/*cljs-ns*)
+                      :cljs-warnings-var (resolve 'cljs.analyzer/*cljs-warnings*)
                       :cljs-repl-setup-fn (resolve 'cljs.repl/setup)
                       :cljs-evaluate-fn (resolve 'cljs.repl/evaluate)
                       :cljs-eval-cljs-fn (resolve 'cljs.repl/eval-cljs)
@@ -121,11 +128,19 @@
                     :wrap non-recording-wrap)]
     (with-cljs-env cenv ns
       [cljs-eval-cljs-fn]
-      (try
-        (let [result (cljs-eval-cljs-fn renv @cenv (read-string code) opts)]
-          (update-cljs-state! session cenv renv)
-          {:value result})
-        (catch Exception e {:error e})))))
+      ;; `eval-cljs` doesn't honor the :warnings opt above, so silence the
+      ;; undeclared-var warning for `property-names-and-types` (harmless: the ns
+      ;; is loaded in the runtime, just not always known to the analyzer yet) by
+      ;; binding the analyzer's warning map directly.
+      (let [warnings-var (:cljs-warnings-var (resolve-vars!))]
+        (with-bindings (if warnings-var
+                         {warnings-var (assoc @warnings-var :undeclared-var false)}
+                         {})
+          (try
+            (let [result (cljs-eval-cljs-fn renv @cenv (read-string code) opts)]
+              (update-cljs-state! session cenv renv)
+              {:value result})
+            (catch Exception e {:error e})))))))
 
 (defn- unwrap-repl-env
   "Piggieback 0.7.0+ stores the repl-env wrapped in a private `DelegatingReplEnv`
@@ -169,11 +184,12 @@
          (= expected actual))))
 
 (defn ensure-suitable-cljs-is-loaded [session]
-  (let [{:keys [cenv renv opts]} (extract-cljs-state session)]
+  (let [{:keys [cenv renv opts]} (extract-cljs-state session)
+        node? (node-env? renv)]
     (with-cljs-env cenv 'cljs.user
       [cljs-repl-setup-fn cljs-load-namespace-fn cljs-evaluate-fn]
 
-      (when (node-env? renv)
+      (when node?
         ;; rk 2019-09-02 FIXME
         ;; Due to this issue:
         ;; https://github.com/clojure-emacs/cider-nrepl/pull/644#issuecomment-526953982
@@ -181,29 +197,41 @@
         ;; local buffer is initialized for this thread.
         (cljs-repl-setup-fn renv opts))
 
-      (when (not= "true" (some-> (cljs-evaluate-fn
-                                  renv "<suitable>" 1
-                                  ;; see above, would be suitable.js_introspection
-                                  (format "!!goog.getObjectByName('%s')" (munged-js-introspection-js-name))) :value))
-        (try
-          ;; see above, would be suitable.js-introspection
-          (cljs-load-namespace-fn renv (read-string (munged-js-introspection-ns)) opts)
-          (catch Exception e
-            ;; when run with mranderson, cljs does not seem to handle the ns
-            ;; annotation correctly and does not recognize the namespace even
-            ;; though it loads correctly.
-            (when-not (and (string/includes? (munged-js-introspection-ns) "inlined-deps")
-                           (string/includes? (string/lower-case (str e)) "does not provide a namespace"))
-              (throw e))))
-        (cljs-evaluate-fn renv "<suitable>" 1 (format "goog.require(\"%s\");%s"
-                                                      (munged-js-introspection-js-name)
-                                                      (if debug? " console.log(\"suitable loaded\");" "")))
-        ;; wait as depending on the implemention of goog.require provide by the
-        ;; cljs repl might be async. See
-        ;; https://github.com/clojure-emacs/clj-suitable/issues/1 for more details.
-        (Thread/sleep 100)
+      ;; A node runtime persists for the whole session, so once the introspection
+      ;; namespace is loaded we can skip re-probing the runtime on every
+      ;; completion request (parity with the shadow-cljs path,
+      ;; clojure-emacs/clj-suitable#6). A browser runtime can reload and drop the
+      ;; namespace, so there we keep checking on every request.
+      (when-not (and node? (get @session #'*js-introspection-loaded*))
+        (letfn [(introspection-present? []
+                  (= "true" (some-> (cljs-evaluate-fn
+                                     renv "<suitable>" 1
+                                     ;; see above, would be suitable.js_introspection
+                                     (format "!!goog.getObjectByName('%s')" (munged-js-introspection-js-name)))
+                                    :value)))]
+          (when-not (introspection-present?)
+            (try
+              ;; see above, would be suitable.js-introspection
+              (cljs-load-namespace-fn renv (read-string (munged-js-introspection-ns)) opts)
+              (catch Exception e
+                ;; when run with mranderson, cljs does not seem to handle the ns
+                ;; annotation correctly and does not recognize the namespace even
+                ;; though it loads correctly.
+                (when-not (and (string/includes? (munged-js-introspection-ns) "inlined-deps")
+                               (string/includes? (string/lower-case (str e)) "does not provide a namespace"))
+                  (throw e))))
+            (cljs-evaluate-fn renv "<suitable>" 1 (format "goog.require(\"%s\");%s"
+                                                          (munged-js-introspection-js-name)
+                                                          (if debug? " console.log(\"suitable loaded\");" "")))
+            ;; wait as depending on the implemention of goog.require provide by the
+            ;; cljs repl might be async. See
+            ;; https://github.com/clojure-emacs/clj-suitable/issues/1 for more details.
+            (Thread/sleep 100)
+            (update-cljs-state! session cenv renv))
 
-        (update-cljs-state! session cenv renv)))))
+          ;; only cache the loaded state for node, where the runtime persists
+          (when (and node? (introspection-present?))
+            (swap! session assoc #'*js-introspection-loaded* true)))))))
 
 ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -264,12 +292,12 @@
   browser runtime (clojure-emacs/clj-suitable#47/#48) - is surfaced and left
   uncached, so it's retried and diagnosable rather than silently swallowed."
   [cljs-eval-fn session ns]
-  (when-not (::js-introspection-loaded @session)
+  (when-not (get @session #'*js-introspection-loaded*)
     (let [{:keys [error]} (cljs-eval-fn ns (str "(require '" (suitable.js-completions/js-introspection-ns) ")"))]
       (if (seq error)
         (println (format "suitable error: could not load the introspection namespace (enable %s/debug for more details): %s"
                          this-ns error))
-        (swap! session assoc ::js-introspection-loaded true)))))
+        (swap! session assoc #'*js-introspection-loaded* true)))))
 
 (defn- complete-for-shadow-cljs
   "Shadow-cljs handles evals quite differently from normal cljs so we need some
