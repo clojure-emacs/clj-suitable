@@ -106,7 +106,7 @@ You can now start a figwheel repl via `clj -M:suitable` and use TAB to complete.
 
 First make sure that the [normal leiningen setup](https://figwheel.org/#setting-up-a-build-with-leiningen) works.
 
-Add `[org.rksm/suitable "0.7.0"]` to your dependencies vector.
+Add `[org.rksm/suitable "0.8.0"]` to your dependencies vector.
 
 Then you can start a repl with `lein trampoline run -m suitable.figwheel.main -- -b dev -r`
 
@@ -175,7 +175,7 @@ Also, direct global access is supported such as `js/console.log`. suitable will 
 #### Local install
 
 ```
-PROJECT_VERSION=0.7.0 make install
+PROJECT_VERSION=0.8.0 make install
 ```
 
 #### Releasing to Clojars
@@ -183,7 +183,7 @@ PROJECT_VERSION=0.7.0 make install
 Release to [clojars](https://clojars.org/) by tagging a new release:
 
 ```
-git tag -a v0.7.0 -m "Release 0.7.0"
+git tag -a v0.8.0 -m "Release 0.8.0"
 git push --tags
 ```
 

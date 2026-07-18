@@ -2,6 +2,8 @@
 
 ## master
 
+## 0.8.0 (2026-07-18)
+
 - Match static completion candidates fuzzily, like compliment does for Clojure (`pr-fn` completes `print-function`, `cs` completes `clojure.string`).
 - Rank static completion candidates with compliment-style priorities (current-ns vars first, then `cljs.core`, then namespaces and classes).
 - Complete local bindings (`let`/`loop`/`fn`/`for`/`doseq`/... including destructuring) from the surrounding form, like compliment does for Clojure.
