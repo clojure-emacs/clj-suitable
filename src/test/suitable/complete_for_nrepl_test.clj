@@ -12,6 +12,7 @@
 
 (require 'cljs.repl)
 (require 'cljs.repl.node)
+(require 'cljs.repl.browser)
 
 (def ^:dynamic *session* nil)
 (def ^:dynamic ^nrepl.server.Server *server* nil)
@@ -174,7 +175,7 @@
           session (atom {})]
       (sut/require-introspection-ns! eval-fn session "cljs.user")
       (is (= 1 (count @calls)) "evals the require once")
-      (is (true? (::sut/js-introspection-loaded @session)))
+      (is (true? (get @session #'sut/*js-introspection-loaded*)))
       (sut/require-introspection-ns! eval-fn session "cljs.user")
       (is (= 1 (count @calls)) "does not re-require once loaded")))
 
@@ -183,7 +184,7 @@
           eval-fn (fn [ns code] (swap! calls conj [ns code]) {:value nil :error "cider is not defined"})
           session (atom {})
           out     (with-out-str (sut/require-introspection-ns! eval-fn session "cljs.user"))]
-      (is (not (contains? @session ::sut/js-introspection-loaded))
+      (is (not (contains? @session #'sut/*js-introspection-loaded*))
           "must not mark loaded when the require errored")
       (is (string/includes? out "could not load the introspection namespace")
           "surfaces the failure instead of swallowing it")
@@ -195,7 +196,12 @@
   (is (false? (sut/node-env? 42)))
   (is (sut/node-env? (cljs.repl.node/repl-env)))
   ;; a node env wrapped in piggieback's delegating repl-env must still be detected
-  (is (sut/node-env? (piggieback-cljs/delegating-repl-env (cljs.repl.node/repl-env)))))
+  (is (sut/node-env? (piggieback-cljs/delegating-repl-env (cljs.repl.node/repl-env))))
+  ;; a browser env must NOT be treated as node, so the loading path keeps
+  ;; re-checking the runtime every request instead of caching (a page reload
+  ;; drops the introspection namespace)
+  (is (false? (sut/node-env? (cljs.repl.browser/repl-env))))
+  (is (false? (sut/node-env? (piggieback-cljs/delegating-repl-env (cljs.repl.browser/repl-env))))))
 
 (comment
   (run-tests))
