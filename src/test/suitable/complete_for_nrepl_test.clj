@@ -145,6 +145,30 @@
         "(__prefix__ (js/Set. (js/Array. 1 2 3)))"
         [{:candidate ".-size", :ns "(js/Set. (js/Array. 1 2 3))", :type "var"}]))))
 
+(deftest require-introspection-ns
+  ;; https://github.com/clojure-emacs/clj-suitable/issues/47
+  (testing "loads once and marks the session loaded on success"
+    (let [calls   (atom [])
+          eval-fn (fn [ns code] (swap! calls conj [ns code]) {:value nil :error nil})
+          session (atom {})]
+      (sut/require-introspection-ns! eval-fn session "cljs.user")
+      (is (= 1 (count @calls)) "evals the require once")
+      (is (true? (::sut/js-introspection-loaded @session)))
+      (sut/require-introspection-ns! eval-fn session "cljs.user")
+      (is (= 1 (count @calls)) "does not re-require once loaded")))
+
+  (testing "a failed load is surfaced and left uncached, so it is retried"
+    (let [calls   (atom [])
+          eval-fn (fn [ns code] (swap! calls conj [ns code]) {:value nil :error "cider is not defined"})
+          session (atom {})
+          out     (with-out-str (sut/require-introspection-ns! eval-fn session "cljs.user"))]
+      (is (not (contains? @session ::sut/js-introspection-loaded))
+          "must not mark loaded when the require errored")
+      (is (string/includes? out "could not load the introspection namespace")
+          "surfaces the failure instead of swallowing it")
+      (with-out-str (sut/require-introspection-ns! eval-fn session "cljs.user"))
+      (is (= 2 (count @calls)) "retries the load after a failure"))))
+
 (deftest node-env?
   (is (false? (sut/node-env? nil)))
   (is (false? (sut/node-env? 42)))

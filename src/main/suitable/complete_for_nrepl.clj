@@ -254,6 +254,23 @@
 (defn- shadow-cljs? [msg]
   (:shadow.cljs.devtools.server.nrepl-impl/build-id msg))
 
+(defn require-introspection-ns!
+  "Loads the introspection namespace into the shadow-cljs runtime, once per
+  session (clojure-emacs/clj-suitable#6). Shadow doesn't go through
+  `ensure-suitable-cljs-is-loaded`, so it's loaded here with a plain `require`.
+
+  The session is marked loaded only when the require actually succeeds. A failed
+  load - e.g. the mranderson-inlined introspection ns not being available in a
+  browser runtime (clojure-emacs/clj-suitable#47/#48) - is surfaced and left
+  uncached, so it's retried and diagnosable rather than silently swallowed."
+  [cljs-eval-fn session ns]
+  (when-not (::js-introspection-loaded @session)
+    (let [{:keys [error]} (cljs-eval-fn ns (str "(require '" (suitable.js-completions/js-introspection-ns) ")"))]
+      (if (seq error)
+        (println (format "suitable error: could not load the introspection namespace (enable %s/debug for more details): %s"
+                         this-ns error))
+        (swap! session assoc ::js-introspection-loaded true)))))
+
 (defn- complete-for-shadow-cljs
   "Shadow-cljs handles evals quite differently from normal cljs so we need some
   special handling here."
@@ -264,15 +281,9 @@
           (let [result ((resolve 'shadow.cljs.devtools.api/cljs-eval) build-id code {:ns (symbol ns)})]
             {:error (some->> result :err str)
              :value (some->> result :results first edn/read-string)}))
-        ;; shadow doesn't go through `ensure-suitable-cljs-is-loaded`, so load the
-        ;; introspection namespace here - once per session, not once per request
-        ;; (clojure-emacs/clj-suitable#6).
         ensure-loaded-fn
         (fn [session]
-          (when-not (::js-introspection-loaded @session)
-            (cljs-eval-fn (or (:ns msg) "cljs.user")
-                          (str "(require '" (suitable.js-completions/js-introspection-ns) ")"))
-            (swap! session assoc ::js-introspection-loaded true)))]
+          (require-introspection-ns! cljs-eval-fn session (or (:ns msg) "cljs.user")))]
     (handle-completion-msg! msg cljs-eval-fn ensure-loaded-fn)))
 
 (defn complete-for-nrepl
