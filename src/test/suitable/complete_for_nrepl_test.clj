@@ -39,6 +39,26 @@
   (.close *transport*)
   (.close *server*))
 
+(defn await-cljs-completion-ready
+  "Blocks until the cljs completion path is live, i.e. a plain `js/Ob` completion
+  comes back with candidates.
+
+  The standalone completion middleware only answers `complete` once piggieback
+  has stored the cljs compiler-env in the session; until the Node repl has
+  finished booting, the op falls through to nREPL's `unknown-op` and the request
+  returns no completions. Gating on a working completion here removes that
+  startup race from the tests (a real cider-nrepl stack always has a completion
+  handler, so it never hits `unknown-op`)."
+  [timeout-ms]
+  (let [deadline (+ (System/currentTimeMillis) timeout-ms)]
+    (loop []
+      (let [resp (message {:op "complete" :ns "cljs.user" :symbol "js/Ob"})]
+        (cond
+          (seq (:completions resp)) true
+          (> (System/currentTimeMillis) deadline)
+          (throw (ex-info "cljs completion never became ready" {:last-response resp}))
+          :else (do (Thread/sleep 200) (recur)))))))
+
 (defmacro with-repl-env
   {:style/indent 1}
   [renv-form & body]
@@ -59,6 +79,7 @@
                                     (piggieback/cljs-repl ~renv-form))}))
          (dorun (message {:op :eval
                           :code (nrepl/code (require 'clojure.data))}))
+         (await-cljs-completion-ready 30000)
 
          (do
            ~@body)
