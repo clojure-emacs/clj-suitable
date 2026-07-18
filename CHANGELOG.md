@@ -9,6 +9,7 @@
 - Only offer special forms at the head of a list, matching compliment.
 - [#5](https://github.com/clojure-emacs/clj-suitable/issues/5): don't clobber the REPL's `*1`/`*2`/`*3` when computing dynamic completions.
 - [#6](https://github.com/clojure-emacs/clj-suitable/issues/6): load the introspection namespace once per session instead of on every completion request.
+- [#47](https://github.com/clojure-emacs/clj-suitable/issues/47), [#48](https://github.com/clojure-emacs/clj-suitable/issues/48): surface a failed introspection-namespace load in the shadow-cljs path instead of silently caching it, so browser-runtime failures are diagnosable and retried.
 
 ## 0.7.0 (2026-07-12)
 
