@@ -2,10 +2,23 @@
 {:source-paths
  ["src/dev"
   "src/main"
-  "src/test"]
+  "src/test"
+  "src/test-integration"]
 
  :dependencies
  []
 
+ ;; Serves the :browser-test build so headless Chrome can load it; see
+ ;; suitable.browser-completion-test. Top-level, not per-build (shadow-cljs 3.x).
+ :dev-http
+ {8123 {:root "target/browser-test"}}
+
  :builds
- {}}
+ {;; Used by suitable.browser-completion-test to bring up a real browser
+  ;; runtime (loaded via headless Chrome) so we can exercise the shadow-cljs
+  ;; completion path against a browser target, not just Node.
+  :browser-test
+  {:target     :browser
+   :output-dir "target/browser-test/js"
+   :asset-path "/js"
+   :modules    {:main {:init-fn suitable.browser-test-init/init}}}}}
