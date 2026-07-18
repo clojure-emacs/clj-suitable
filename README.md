@@ -20,6 +20,14 @@ Why here? Because it's very convenient from the user perspective to have a singl
 
 This type of completion provides a [compliment custom source](https://github.com/alexander-yakushev/compliment/wiki/Custom-sources) for ClojureScript, so it's easy to plug with the most popular completion framework out there.
 
+It brings the static completion close to what compliment does for Clojure:
+
+- fuzzy matching (`pr-fn` completes `print-function`, `cs` completes `clojure.string`)
+- compliment-style ranking (current-namespace vars first, then `cljs.core`, then namespaces and classes)
+- local bindings from the surrounding form, including destructuring (`let`, `loop`, `fn`, `for`, `doseq`, ...)
+- vars referred in a `(:require [some.ns :refer [...]])` clause
+- special forms offered only at the head of a list
+
 ``` clojure
 (ns suitable.demo
   (:require
